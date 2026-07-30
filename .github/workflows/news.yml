@@ -1,0 +1,28 @@
+name: Refresh News
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'        # 每 6 小时自动跑一次
+  workflow_dispatch: {}           # 也可在 Actions 页面手动触发
+
+permissions:
+  contents: write                 # 允许把更新后的 news.json 提交回仓库
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - name: 抓取新闻并抽取全文
+        run: node scripts/crawl-news.mjs
+      - name: 提交更新
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add news.json
+          git commit -m "chore: 刷新新闻 $(date +'%F %T')" || echo "无变化"
+          git push

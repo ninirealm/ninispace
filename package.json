@@ -1,0 +1,15 @@
+{
+  "name": "nini-life-workbench",
+  "version": "1.0.0",
+  "private": true,
+  "description": "nini 的生活工作台：静态站点 + 每日新闻爬取（GitHub Actions 预生成 news.json 含全文）",
+  "scripts": {
+    "crawl": "node scripts/crawl-news.mjs",
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "rss-parser": "^3.13.0",
+    "@mozilla/readability": "^0.6.0",
+    "jsdom": "^29.1.1"
+  }
+}

@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<meta name="theme-color" content="#2a9d8f" />
+<title>个人生活工作台</title>
+<style>
+  :root{
+    --bg:#f4f7f6; --panel:#ffffff; --ink:#2b3440; --muted:#8a93a3;
+    --line:#e9efed; --brand:#34b89a; --brand2:#5aa9e6; --accent:#f0a35e;
+    --good:#34b89a; --warn:#f0a35e; --bad:#e8798c;
+    --shadow:0 6px 22px rgba(40,70,70,.07);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:
+      radial-gradient(1200px 400px at 80% -120px,rgba(90,169,230,.12),transparent),
+      radial-gradient(900px 360px at 0% -80px,rgba(52,184,154,.12),transparent),
+      var(--bg);
+    color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.55;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:0 16px 90px}
+  header.hero{
+    margin:0 -16px 18px;padding:26px 22px 22px;border-radius:0 0 26px 26px;
+    background:linear-gradient(120deg,var(--brand),var(--brand2));
+    color:#fff;box-shadow:0 10px 28px rgba(52,184,154,.22);position:relative;overflow:hidden;
+  }
+  header.hero::after{content:"";position:absolute;right:-30px;top:-40px;width:170px;height:170px;
+    background:radial-gradient(circle,rgba(255,255,255,.22),transparent 70%);border-radius:50%}
+  .hero .hi{font-size:13px;opacity:.92;letter-spacing:.5px}
+  .hero h1{margin:4px 0 2px;font-size:23px;font-weight:800}
+  .hero .date{font-size:13px;opacity:.9}
+  .hero .tools{position:absolute;right:14px;top:14px;display:flex;gap:8px}
+  .hero .tools button{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);
+    padding:6px 12px;border-radius:999px;font-size:12px;cursor:pointer;backdrop-filter:blur(4px)}
+  .hero .tools button:hover{background:rgba(255,255,255,.32)}
+
+  nav.tabs{display:flex;gap:8px;overflow-x:auto;padding:6px;background:var(--panel);
+    border-radius:999px;box-shadow:var(--shadow);margin-bottom:20px;position:sticky;top:8px;z-index:20}
+  nav.tabs button{flex:0 0 auto;border:none;background:transparent;color:var(--muted);
+    padding:9px 15px;border-radius:999px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+  nav.tabs button.active{background:linear-gradient(120deg,var(--brand),var(--brand2));color:#fff;
+    box-shadow:0 4px 12px rgba(52,184,154,.3)}
+
+  .panel{display:none;animation:fade .25s ease}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 14px;flex-wrap:wrap}
+  .bar h2{font-size:17px;margin:0;display:flex;align-items:center;gap:8px}
+  .bar h2 small{font-weight:500;color:var(--muted);font-size:12px}
+
+  .subtabs{display:flex;gap:8px;margin-bottom:14px}
+  .subtabs button{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--muted);
+    padding:8px 16px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer}
+  .subtabs button.active{background:#eafaf6;color:var(--brand);border-color:var(--brand)}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+  .filters select,.filters input{padding:8px 10px;border:1px solid var(--line);border-radius:10px;
+    font-size:13px;background:#fff;color:var(--ink);outline:none}
+  .filters select:focus,.filters input:focus{border-color:var(--brand)}
+
+  .card{background:var(--panel);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);
+    border:1px solid var(--line);margin-bottom:14px}
+
+  .btn-primary{background:linear-gradient(120deg,var(--brand),var(--brand2));color:#fff;border:none;
+    padding:10px 16px;border-radius:11px;font-size:13.5px;font-weight:700;cursor:pointer;
+    box-shadow:0 5px 14px rgba(52,184,154,.28)}
+  .btn-primary:active{transform:scale(.97)}
+  .btn-ghost{background:#eef3f2;color:var(--ink);border:none;padding:9px 14px;border-radius:11px;
+    font-size:13px;cursor:pointer;font-weight:600}
+  .btn-ghost:hover{background:#e3eae9}
+  .btn-sm{padding:6px 11px;font-size:12px;border-radius:9px;border:1px solid var(--line);
+    background:#fff;color:var(--ink);cursor:pointer;font-weight:600}
+  .btn-sm:hover{border-color:var(--brand);color:var(--brand)}
+  .btn-sm.danger:hover{border-color:var(--bad);color:var(--bad)}
+  .btn-sm.ok{color:var(--good);border-color:#bfe9dd;background:#eafaf6}
+
+  .grid{display:grid;gap:12px}
+  .grid.recipes{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+  .grid.gallery{grid-template-columns:repeat(auto-fill,minmax(165px,1fr))}
+
+  .rcard{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff;display:flex;flex-direction:column;gap:7px}
+  .rcard .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .rcard .top b{font-size:15px}
+  .rcard .stars{font-size:12.5px;color:var(--accent);letter-spacing:1px}
+  .rcard .stars .lab{color:var(--muted)}
+  .rcard .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+  .badge{font-size:11px;padding:3px 9px;border-radius:999px;font-weight:700;white-space:nowrap}
+  .b-bread{background:#fdeede;color:#c87a2a}.b-toast{background:#f3ecff;color:#7a5bd0}
+  .b-home{background:#e6f5ee;color:#2a8f6f}.b-dessert{background:#ffe6ee;color:#d05a7e}
+  .b-simple{background:#eaf1ff;color:#3f72c4}.b-pencil{background:#f0ece2;color:#8a7355}
+  .b-color{background:#e7f7ef;color:#2c9d77}.b-acrylic{background:#fff1e0;color:#d08a3a}
+  .b-cat{background:#eaf1ff;color:#3f72c4}
+  .detail{border-top:1px dashed var(--line);padding-top:9px;margin-top:3px;font-size:13px;color:#46505c;white-space:pre-wrap}
+  .detail a{color:var(--brand2);word-break:break-all}
+
+  .gcard{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+  .gcard .thumb{height:130px;background:#eef3f2;display:grid;place-items:center;color:var(--muted);font-size:12px;overflow:hidden}
+  .gcard .thumb img{width:100%;height:100%;object-fit:cover}
+  .gcard .body{padding:10px;display:flex;flex-direction:column;gap:6px}
+  .gcard .body b{font-size:13.5px;line-height:1.35}
+  .gcard .meta{font-size:11.5px;color:var(--muted)}
+  .gcard .acts{display:flex;gap:6px;margin-top:2px;flex-wrap:wrap}
+
+  .excerpt{font-size:16px;line-height:2.05;color:#33404c;background:#f7faf9;border-left:4px solid var(--brand);
+    padding:16px 18px;border-radius:10px;white-space:pre-wrap;margin:10px 0;text-align:justify}
+  .book-intro{font-size:13px;color:#5b6573;background:#f3f8f7;border-left:3px solid var(--brand2);
+    padding:9px 12px;border-radius:9px;margin:8px 0}
+  .read-hint{font-size:12px;color:var(--muted)}
+  .rate{display:flex;gap:4px;font-size:22px;cursor:pointer;color:#d9e0dd}
+  .rate span.on{color:var(--accent)}
+  .pill-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .mini-stat{background:#f3f8f7;border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;flex-direction:column}
+  .mini-stat b{font-size:20px;color:var(--brand)}
+  .mini-stat span{font-size:12px;color:var(--muted)}
+
+  .split{display:flex;gap:14px;align-items:stretch}
+  .split>div{flex:1;min-width:0}
+  .frame{width:100%;height:520px;border:1px solid var(--line);border-radius:14px;background:#fff}
+  .note-line{font-size:12px;color:var(--muted);margin-top:6px}
+  .note-line a{color:var(--brand2)}
+
+  .news-item{border:1px solid var(--line);border-radius:13px;padding:13px 15px;background:#fff;margin-bottom:11px}
+  .news-item .nt{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .news-item .ns{font-size:13px;color:#54606c;margin:7px 0}
+  .news-item .na{font-size:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .news-item .na a{color:var(--brand2);text-decoration:none}
+  .news-item .ns-meta{font-size:11.5px;color:var(--muted);margin:5px 0 0}
+  .fulltext{margin-top:10px;padding:11px 13px;background:#f7fafa;border-left:3px solid var(--brand2);border-radius:9px}
+  .fulltext .article-text{font-size:13.5px;line-height:1.85;color:#2f3942;white-space:pre-wrap;word-break:break-word;max-height:420px;overflow:auto}
+  .fulltext .loading{font-size:12.5px;color:var(--muted)}
+  .hidden{display:none!important}
+
+  .modal{position:fixed;inset:0;background:rgba(30,40,45,.45);display:grid;place-items:center;z-index:100;padding:16px}
+  .modal.hidden{display:none}
+  .modal-card{background:#fff;width:100%;max-width:480px;max-height:88vh;overflow:auto;border-radius:18px;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);animation:pop .2s ease}
+  @keyframes pop{from{transform:scale(.96);opacity:.6}to{transform:none;opacity:1}}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:#fff;z-index:1;border-radius:18px 18px 0 0}
+  .modal-head span{font-weight:800;font-size:16px}
+  .modal-head .x{border:none;background:#f0f3f2;width:30px;height:30px;border-radius:50%;font-size:18px;cursor:pointer;color:#666}
+  .modal-body{padding:16px 18px 20px}
+  .modal-body label{display:block;font-size:12.5px;color:var(--muted);margin:11px 0 5px;font-weight:600}
+  .modal-body input,.modal-body textarea,.modal-body select{width:100%;padding:10px 12px;border:1px solid var(--line);
+    border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fbfdfc;color:var(--ink)}
+  .modal-body input:focus,.modal-body textarea:focus,.modal-body select:focus{border-color:var(--brand);background:#fff}
+  .modal-body textarea{resize:vertical;min-height:64px}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+
+  .empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 10px}
+  .tip{font-size:12px;color:var(--muted);background:#f3f8f7;border:1px dashed var(--line);
+    border-radius:10px;padding:9px 12px;margin-bottom:12px}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#2b3440;color:#fff;
+    padding:10px 18px;border-radius:999px;font-size:13px;z-index:200;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1;bottom:42px}
+
+  @media(max-width:760px){
+    .split{flex-direction:column}
+    .frame{height:380px}
+    .hero h1{font-size:20px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="tools"><button onclick="openDataMenu()">⚙ 数据</button></div>
+    <div class="hi" id="greet">你好</div>
+    <h1 id="heroTitle">个人生活工作台</h1>
+    <div class="date" id="heroDate">—</div>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <!-- 1 烘焙食谱 -->
+  <section class="panel" id="p-recipes">
+    <div class="bar"><h2>🍞 烘焙食谱 <small>素材库 + 我的美食集</small></h2></div>
+    <div class="subtabs" id="recipeSub">
+      <button data-v="lib" class="active">📚 素材库</button>
+      <button data-v="mine">🍽 我的美食集</button>
+    </div>
+    <div class="tip">「素材库」为从公开食谱站（Wikimedia Cookbook）爬取的真实配方；点「＋加入我的美食集」挑选喜欢的，之后可二次编辑、形成专属美食集。</div>
+    <div class="filters" id="recipeFilters"></div>
+    <div class="grid recipes" id="recipeBody"></div>
+  </section>
+
+  <!-- 2 绘画素材 -->
+  <section class="panel" id="p-drawings">
+    <div class="bar"><h2>🎨 绘画素材 <small>素材库 + 我的绘画集</small></h2></div>
+    <div class="subtabs" id="drawSub">
+      <button data-v="lib" class="active">📚 素材库</button>
+      <button data-v="mine">🖼 我的绘画集</button>
+    </div>
+    <div class="tip">「素材库」为从维基共享资源（Wikimedia Commons，公共领域/自由授权）爬取的参考图；点「＋加入我的绘画集」收藏喜欢的，用于后续临摹与创作。</div>
+    <div class="filters" id="drawFilters"></div>
+    <div class="grid gallery" id="drawBody"></div>
+  </section>
+
+  <!-- 3 每日阅读 -->
+  <section class="panel" id="p-reading">
+    <div class="bar"><h2>📖 每日阅读打卡 <small>高分书单 · 自动推送</small></h2>
+      <button class="btn-ghost" onclick="readingSkip()">换一段 ↻</button></div>
+    <div class="tip">内容来自内置公有领域高分书单；对「感兴趣 / 不感兴趣」的反馈会自动优化后续推荐方向。</div>
+    <div class="card" id="readingCard"></div>
+    <div class="grid" id="readingStats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"></div>
+  </section>
+
+  <!-- 4 每日新闻 -->
+  <section class="panel" id="p-news">
+    <div class="bar"><h2>📰 每日新闻 <small>真实资讯 · 每天自动更新</small></h2></div>
+    <div class="tip" id="newsUpdated">正在抓取今日真实新闻…</div>
+    <div class="filters">
+      <select id="n-cat"><option value="">全部分类</option><option>科技·数码</option><option>商业·创投</option><option>时政·综合</option></select>
+      <button class="btn-ghost" onclick="renderNews()">筛选</button>
+      <button class="btn-ghost" onclick="refreshNews()">↻ 刷新</button>
+    </div>
+    <div id="newsList"></div>
+  </section>
+
+  <!-- 5 英语打卡 -->
+  <section class="panel" id="p-english">
+    <div class="bar"><h2>🔤 英语阅读打卡 <small>百词斩 · 左右分栏</small></h2>
+      <button class="btn-primary" onclick="englishQuick()">✔ 一键标记今日完成</button></div>
+    <div class="split">
+      <div>
+        <iframe class="frame" src="https://www.baicizhan.com/" loading="lazy" referrerpolicy="no-referrer"></iframe>
+        <div class="note-line">若窗口无法加载（部分网站禁止内嵌），请 <a href="https://www.baicizhan.com/" target="_blank" rel="noopener">点此在新标签打开百词斩 ↗</a></div>
+      </div>
+      <div>
+        <div class="card" id="englishStats"></div>
+        <div class="card">
+          <div class="bar" style="margin:0 0 10px"><h2 style="font-size:15px">📋 打卡记录</h2><button class="btn-ghost" onclick="addEntity('english')">＋ 新增</button></div>
+          <div id="englishList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 播客推荐 -->
+  <section class="panel" id="p-podcast">
+    <div class="bar"><h2>🎧 每日播客推荐 <small>金融 · 成长 · 城市生活</small></h2></div>
+    <div class="split">
+      <div>
+        <iframe class="frame" src="https://www.xiaoyuzhoufm.com/" loading="lazy" referrerpolicy="no-referrer"></iframe>
+        <div class="note-line">若窗口无法加载（部分网站禁止内嵌），请 <a href="https://www.xiaoyuzhoufm.com/" target="_blank" rel="noopener">点此在新标签打开小宇宙 ↗</a></div>
+      </div>
+      <div>
+        <div class="card" id="podcastCard"></div>
+        <div class="card">
+          <div class="bar" style="margin:0 0 10px"><h2 style="font-size:15px">📜 收听历史</h2></div>
+          <div id="podcastList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal hidden" id="modal">
+  <div class="modal-card">
+    <div class="modal-head"><span id="modalTitle"></span><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 工具函数 ============ */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function uid(){return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function dayIndex(ds){const [y,m,d]=ds.split('-').map(Number);return Math.floor((Date.UTC(y,m-1,d)-Date.UTC(1970,0,1))/86400000);}
+function hashStr(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h;}
+function stars(n){n=Number(n)||0;return '★'.repeat(n)+'☆'.repeat(5-n);}
+function readMin(t){const n=(t||'').replace(/\s/g,'').length;return Math.max(1,Math.ceil(n/350));}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
+
+/* ============ 数据层 ============ */
+const KEY='life-workbench-v2';
+let DB;
+function freshDB(){return {
+  recipeLib:seedRecipeLib(), recipeMine:[],
+  drawLib:seedDrawLib, drawMine:[],
+  reading:{daily:{},history:{},feedback:{themes:{}}},
+  news:{items:seedNews(),daily:{}},
+  english:[],
+  podcasts:{daily:{},history:[]}
+};}
+function load(){try{const r=localStorage.getItem(KEY);DB=r?JSON.parse(r):freshDB();}catch(e){DB=freshDB();}
+  if(!DB||!DB.reading)DB=freshDB();
+  if(!DB.recipeLib)DB.recipeLib=seedRecipeLib();
+  if(!DB.drawLib)DB.drawLib=seedDrawLib;
+  if(!DB.recipeMine)DB.recipeMine=[];
+  if(!DB.drawMine)DB.drawMine=[];
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){toast('保存失败：存储空间可能已满');}}
+function mineArr(m){return m==='recipes'?DB.recipeMine:DB.drawMine;}
+
+/* ============ 内置素材池 ============ */
+const bookPool=[
+  {book:'小王子',author:'圣埃克苏佩里',cat:'文学经典',theme:'成长',
+    intro:'法国作家圣埃克苏佩里的经典寓言，以孩子的眼睛审视成人世界的荒诞，也写尽驯养、责任与真情。',
+    excerpt:`六年前，我的飞机迫降在撒哈拉沙漠，备用的水一天天见底。第二天黎明，一个细嗓音把我从浅睡里叫醒：「请你给我画一只羊，好吗？」那是个金发男孩，说他的星球小得可怜，小到一天里能看见四十三次日落，因为只要把椅子挪一挪，就能多看一次黄昏。
+我摊开纸，先画了我的第一号作品：一条蟒蛇正把一头大象整个吞下，肚子鼓得滚圆。大人们只瞥了一眼，就说：「不过是一顶帽子。」无论我怎么解释那是一条在消化的大蟒蛇，他们只信自己眼睛看见的轮���，不肯多看第二眼。我这才懂得，大人和孩子之间，隔着一堵看不见的墙。
+因为大人总也看不懂，我后来索性放弃了当画家的念头，改学地理。可那男孩又要一只羊。我画了病羊，他说会死；画了老羊，他说太老；画了公羊，他又怕羊顶人。最后我索性用笔描了一只箱子，说：「羊就在里面，你要的羊有了。」他竟欢喜地收下，说这就够了——他从头要的从来不是羊，而是被另一个人认真对待。
+他的星球叫 B612，小得只容得下三座火山和一朵花。他每天清晨用脚踩亮火山口，好让它们均匀喷发；更紧要的是拔掉猴面包树的嫩芽——这种树长得极快，若不及时连根拔除，根须会一寸寸撑裂整颗星球，把一切都掀翻到天上。他总说，这是一件很枯燥、却必须天天做的事。
+最叫他费神的是那朵玫瑰。她披着四根刺，口口声声说自己不怕老虎；她要遮荫、要屏风、要人时时浇水，把男孩折磨得又疑心又自责。等他后来懂得爱，才慢慢明白：她不过是笨拙地、用最坏的方法，渴望被爱罢了。她那些任性的要求，全是怕被丢下的慌张。
+他于是离家远行。一路上他拜访了许多星球：国王统治一切，却只敢命令能被服从的事；虚荣者要人人赞他最美；酒鬼为喝酒而羞愧，又为忘掉羞愧而喝得更多；商人忙着把星星数进账本，说这样便拥有了它们。点灯人最可笑也最可敬——他的星球转得太快，一分钟便是一昼夜，他必须每一分钟点灯又熄灯，从不停歇，因为他关怀的，是自己以外的事。
+到了地球，他在玫瑰园里看见五千朵和他那朵几乎一模一样的花，忽然伤心地哭了。他原以为自己富有，拥有宇宙间独一无二的一朵；原来他有的，只是最寻常的一种。可狐狸救了他：「你为那朵花花费的时间，使她变得重要。」狐狸教他驯养，说从此彼此独一无二，又交出那个秘密：「本质的东西，用眼是看不见的。正是你为你的玫瑰花费的时间，才使你的玫瑰如此重要。」
+后来他遇见一口井，辘轳吱呀唱歌，他懂得快乐常常与辛劳相连。城里还有商人卖止渴的药丸，说一星期能省下五十三分钟。男孩却说，他情愿用那五十三分钟，慢慢去看一次日落。他还遇见铁路的扳道工，看见成千上万个孩子像沙粒一样被运往四面八方，却没人知道自己要往哪儿去。
+离别时他对朋友说：「夜晚你抬头看星星，因为我就住在其中的一颗星上对你笑。所以对你来说，所有的星星都在笑。」他托朋友照看那片星空，自己便回他的星球，去给那朵骄傲又脆弱的玫瑰重新浇水、重新听她说话。大人们永远算得清账本，却算不清一颗星的重量——而那个金发男孩，早就替他们记住了。`,
+    fullUrl:'https://fr.wikisource.org/wiki/Le_Petit_Prince'},
+  {book:'瓦尔登湖',author:'梭罗',cat:'自然随笔',theme:'自然',
+    intro:'梭罗在瓦尔登湖畔独居两年写下的自然随笔，探讨简朴生活、精神自由与人与自然的关系。',
+    excerpt:`一八四五年七月四日，我独自搬进瓦尔登湖畔的林子，想在这面湖水边，把日子活得更明白些。我借来一柄斧子，砍下白松，自己动手盖一间小屋——木料、钉子、石灰、工时加在一起，算下来不过二十八块多，余下的时间便全是自己的。
+我到林中来，是因为希望生活得有意义，只去面对生活最基本的实事，看看我能不能学会生活真正要教我的功课，而不是等到临死，才发觉自己其实从未真正活过。我想活得深沉，吸尽生命的精髓，把一切非生活的东西统统击溃。
+湖是大地的一只眼睛。冬去春来，冰面在阳光下绽开蛛网般的裂纹，湖水重新透亮，像谁把蒙尘的镜子擦净。我常在破晓前下水洗澡，湖水凉得叫人清醒，仿佛把灵魂也从一夜的睡眠里，重新剥了出来。水是这林子最诚实的语言。
+清晨是一日的源泉。我席地而坐，任朝雾漫过湖面，听远处镇上的钟声一下一下荡开。比起钟表，我更信得过的，是太阳升到了哪一根松枝的高度——那才是诚实的时间，不催不迫，只管慢慢亮起来。
+这里的居民各有脾性：潜鸟会在湖心大笑，诱你划近，又忽然没入水中；红松鼠蹲在木桩上冲我骂个不停；蚂蚁在搬迁途中彼此厮杀，胜者拖着败者的尸身走。自然从不为谁悲伤，也不为谁喝彩，它只是诚实地运转，把生与死都当作寻常。
+我在湖边种下几亩豆子，锄草时常常与土里的虫打照面。劳动教人谦卑：你以为在料理土地，到头来是土地在料理你。多余的财富只买来多余的东西；一个人真正需要的，远比他以为的少得多。我一年只须劳作少许时日，余下的全是自由。
+黄昏时我常沿湖走，看夕阳把整片水染成熔金；夜里翘首，银河垂落在树梢，仿佛伸手可掬。偶尔有旅人借着星光赶路，脚步声惊起一只夜鸟。我从不觉得孤单——整片森林都在陪我，并不曾真的剩下我自己一个人。
+下雪的夜里，小屋的窗上结满冰花，我在灯下读一本旧书。湖面冻得结实，偶尔传来冰层深处闷闷的裂响，像大地在翻身。那时我便想：所谓孤单，不过是心还没学会听万物的声音。
+春天来临，冰化雪消，湖水涨起，第一只归来的燕子掠过水面。我站在岸边，看一整年的等待，终于又有了回音。自然从不食言，它只是按自己的节奏，把该来的，慢慢带来。
+有时我也划船到湖心，躺平了看云。云走得慢，我也慢下来；等回过神，日头已偏西，而我心里，竟没有一丝要赶什么的慌张。
+潜鸟在春末产蛋，我远远避开它的窝，怕惊了那一窝新生。它却懂我无心伤害，只在远处叫两声，像在打招呼。
+最难忘是秋天的湖：水退下去，露出一圈泥岸，野葡萄沿着岸边疯长，我边走边摘，甜得人直眯眼。`,
+    fullUrl:'https://en.wikisource.org/wiki/Walden'},
+  {book:'道德经',author:'老子',cat:'哲学思辨',theme:'哲思',
+    intro:'老子所著的哲学经典，以「道」为核心，短短五千言影响东亚思想两千余年。',
+    excerpt:`道可道，非常道；名可名，非常名。无名，天地之始；有名，万物之母。故常无欲，以观其妙；常有欲，以观其徼。此两者同出而异名，同谓之玄。玄之又玄，众妙之门。
+天下皆知美之为美，斯恶已；皆知善之为善，斯不善已。故有无相生，难易相成，长短相形，高下相倾，音声相和，前后相随。是以圣人处无为之事，行不言之教；万物作焉而不辞，生而不有，为而不恃，功成而弗居。夫唯弗居，是以不去。
+上善若水。水善利万物而不争，处众人之所恶，故几于道。居善地，心善渊，与善仁，言善信，政善治，事善能，动善时。夫唯不争，故无尤。
+载营魄抱一，能无离乎？专气致柔，能如婴儿乎？涤除玄览，能无疵乎？
+天长地久。天地所以能长且久者，以其不自生，故能长生。是以圣人后其身而身先，外其身而身存。非以其无私耶？故能成其私。
+致虚极，守静笃。万物并作，吾以观复。夫物芸芸，各复归其根。归根曰静，是谓复命。
+绝圣弃智，民利百倍；绝仁弃义，民复孝慈；绝巧弃利，盗贼无有。
+知其雄，守其雌，为天下谿。为天下谿，常德不离，复归于婴儿。
+将欲歙之，必固张之；将欲弱之，必固强之；将欲废之，必固兴之；将欲夺之，必固与之。是谓微明。
+有物混成，先天地生。寂兮寥兮，独立不改，周行而不殆，可以为天地母。吾不知其名，强字之曰道，强为之名曰大。大曰逝，逝曰远，远曰反。故道大，天大，地大，王亦大。域中有四大，而王居其一焉。人法地，地法天，天法道，道法自然。
+善建者不拔，善抱者不脱，子孙以祭祀不辍。修之于身，其德乃真；修之于家，其德乃余；修之于乡，其德乃长；修之于国，其德乃丰；修之于天下，其德乃普。
+为无为，事无事，味无味。大小多少，报怨以德。图难于其易，为大于其细。
+宠辱若惊。贵大患若身。何谓宠辱若惊？宠为下，得之若惊，失之若惊，是谓宠辱若惊。
+其安易持，其未兆易谋。其脆易泮，其微易散。为之于未有，治之于未乱。合抱之木，生于毫末；九层之台，起于累土；千里之行，始于足下。
+五色令人目盲，五音令人耳聋，五味令人口爽，驰骋畋猎令人心发狂，难得之货令人行妨。是以圣人为腹不为目，故去彼取此。
+知人者智，自知者明。胜人者有力，自胜者强。知足者富，强行者有志。不失其所者久，死而不亡者寿。
+大道废，有仁义；智慧出，有大伪；六亲不和，有孝慈；国家昏乱，有忠臣。
+反者道之动，弱者道之用。天下万物生于有，有生于无。
+不出户，知天下；不窥牖，见天道。其出弥远，其知弥少。是以圣人不行而知，不见而名，不为而成。
+知者不言，言者不知。塞其兑，闭其门，挫其锐，解其纷，和其光，同其尘，是谓玄同。
+其政闷闷，其民淳淳；其政察察，其民缺缺。祸兮福之所倚，福兮祸之所伏。孰知其极？
+治大国，若烹小鲜。以道莅天下，其鬼不神。
+江海所以能为百谷王者，以其善下之，故能为百谷王。是以圣人欲上民，必以言下之；欲先民，必以身后之。
+天下皆谓我大，似不肖。夫唯大，故似不肖；若肖，久矣其细也夫！我有三宝，持而保之：一曰慈，二曰俭，三曰不敢为天下先。
+人之生也柔弱，其死也坚强。草木之生也柔脆，其死也枯槁。故坚强者死之徒，柔弱者生之徒。
+天之道，其犹张弓与？高者抑之，下者举之；有余者损之，不足者补之。天之道，损有余而补不足。
+小国寡民。使有什伯之器而不用，使民重死而不远徙。虽有舟舆，无所乘之；虽有甲兵，无所陈之。使民复结绳而用之。甘其食，美其服，安其居，乐其俗。邻国相望，鸡犬之声相闻，民至老死，不相往来。
+信言不美，美言不信。善者不辩，辩者不善。知者不博，博者不知。圣人不积，既以为人己愈有，既以与人己愈多。天之道，利而不害；圣人之道，为而不争。`,
+    fullUrl:'https://zh.wikisource.org/wiki/道德經'},
+  {book:'论语',author:'孔子',cat:'哲学思辨',theme:'成长',
+    intro:'孔子及其弟子的言行录，儒家思想的奠基之作，讲为学、修身与处世。',
+    excerpt:`子曰：「学而时习之，不亦说乎？有朋自远方来，不亦乐乎？人不知而不愠，不亦君子乎？」
+有子曰：「其为人也孝弟，而好犯上者，鲜矣；不好犯上，而好作乱者，未之有也。君子务本，本立而道生；孝弟也者，其为仁之本与？」
+曾子曰：「吾日三省吾身：为人谋而不忠乎？与朋友交而不信乎？传不习乎？」
+子曰：「巧言令色，鲜矣仁。」
+子夏曰：「贤贤易色；事父母，能竭其力；事君，能致其身；与朋友交，言而有信；虽曰未学，吾必谓之学已矣。」
+子曰：「君子不重则不威，学则不固。主忠信，无友不如己者，过则勿惮改。」
+子贡曰：「贫而无谄，富而无骄，何如？」子曰：「可也。未若贫而乐，富而好礼者也。」
+子曰：「不患人之不己知，患不知人也。」
+子曰：「人而不仁，如礼何？人而不仁，如乐何？」
+林放问礼之本。子曰：「大哉问！礼，与其奢也，宁俭；丧，与其易也，宁戚。」
+子曰：「周监于二代，郁郁乎文哉！吾从周。」
+子曰：「里仁为美。择不处仁，焉得知？」
+子曰：「不仁者不可以久处约，不可以长处乐。仁者安仁，知者利仁。」
+子曰：「朝闻道，夕死可矣。」
+子曰：「君子喻于义，小人喻于利。」
+子曰：「见贤思齐焉，见不贤而内自省也。」
+子曰：「德不孤，必有邻。」
+子谓公冶长：「可妻也。虽在缧绁之中，非其罪也。」以其子妻之。
+子贡问曰：「赐也何如？」子曰：「女，器也。」曰：「何器也？」曰：「瑚琏也。」
+子曰：「敏而好学，不耻下问，是以谓之文也。」
+子曰：「贤哉回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。贤哉回也！」
+子曰：「质胜文则野，文胜质则史。文质彬彬，然后君子。」
+子曰：「知之者不如好之者，好之者不如乐之者。」
+子曰：「中人以上，可以语上也；中人以下，不可以语上也。」
+子曰：「默而识之，学而不厌，诲人不倦，何有于我哉？」
+子曰：「不愤不启，不悱不发。举一隅不以三隅反，则不复也。」
+子曰：「饭疏食饮水，曲肱而枕之，乐亦在其中矣。不义而富且贵，于我如浮云。」
+子曰：「三人行，必有我师焉：择其善者而从之，其不善者而改之。」
+曾子曰：「士不可以不弘毅，任重而道远。仁以为己任，不亦重乎？死而后已，不亦远乎？」
+子曰：「三军可夺帅也，匹夫不可夺志也。」
+子曰：「岁寒，然后知松柏之后凋也。」
+子在川上曰：「逝者如斯夫！不舍昼夜。」
+颜渊问仁。子曰：「克己复礼为仁。一日克己复礼，天下归仁焉。为仁由己，而由人乎哉？」
+仲弓问仁。子曰：「出门如见大宾，使民如承大祭。己所不欲，勿施于人。在邦无怨，在家无怨。」
+子路问政。子曰：「先之劳之。」子曰：「其身正，不令而行；其身不正，虽令不从。」子曰：「君子和而不同，小人同而不和。」
+子曰：「性相近也，习相远也。」子曰：「唯上知与下愚不移。」
+孔子曰：「益者三友，损者三友。友直，友谅，友多闻，益矣。友便辟，友善柔，友便佞，损矣。」
+孔子曰：「益者三乐，损者三乐。乐节礼乐，乐道人之善，乐多贤友，益矣。」
+子曰：「志士仁人，无求生以害仁，有杀身以成仁。」
+子曰：「工欲善其事，必先利其器。」
+子曰：「人无远虑，必有近忧。」
+子曰：「君子求诸己，小人求诸人。」
+子曰：「有教无类。」
+子曰：「道不同，不相为谋。」
+子曰：「巧言乱德，小不忍则乱大谋。」`,
+    fullUrl:'https://zh.wikisource.org/wiki/論語'},
+  {book:'飞鸟集',author:'泰戈尔',cat:'情感',theme:'情感',
+    intro:'泰戈尔的代表诗集，以短诗捕捉自然、生命与爱的刹那感悟，获诺贝尔文学奖。',
+    excerpt:`夏天的飞鸟，飞到我窗前唱歌，又飞去了。秋天的黄叶，没有什么可唱，只一声叹息，飘落在那里。
+如果你因失去太阳而流泪，那么你也将失去群星了。
+绿草呀，你的脚步虽小，却已拥有脚下整片的土地。
+群树像大地的渴望，踮起脚尖，窥探天空。
+生如夏花之绚烂，死如秋叶之静美。
+世界对着它的爱人，揭下了它浩瀚的面具。
+我们的欲望，把彩虹的颜色，借给那不过是云雾的人生。
+瀑布唱着：「我得到自由时，便有了歌声。」
+太阳只穿一件朴素的光衣，白云却披了华丽的裙裾。
+夜的沉默，像一个深深的灯盏，星辰是它点着的灯火。
+生命因为付出了爱，而更显富足。
+尘土受尽践踏，却以一朵花来报答。
+使生如夏花之绚烂，死如秋叶之静美——这便是我对你的祝福。
+错误经不起失败，真理却不怕失败。
+神自己的清晨，在他自己看来，也是新奇的。
+鸟以为把鱼举到空中，是一种慈悲。
+人是一个初生的孩子，他的力量，就是生长的力量。
+风在无路之中寻找最短的路，又忽然在无何有之乡，终止了它的追求。
+我存在，乃是所谓生命的一个永久的奇迹。
+我们最谦卑时，才最接近伟大。
+神在寻找他自己的反影，便把他反射成人。
+思想掠过我的心上，如一群野鸭飞过天空。我听见它们鼓翼之声了。
+贞洁，是一种财富，凭着它，我们得以安居于神的近旁。
+果实的事业是尊贵的，花的事业是甜美的，但是让我做叶的事业罢，叶是谦逊地专心地垂着绿荫的。
+月儿把她的光明遍照在天上，却留着她的黑斑给自己。
+流水不争先，争的是滔滔不绝。
+权势对世界说道：『你是我的。』世界便把权势囚禁在她的宝座下面。
+蜜蜂从花中啜蜜，离开时营营道谢。浮华的蝴蝶却相信花是应该向它道谢的。
+如果你把所有的错误都关在门外，真理也要被关在门外了。
+白云谦逊地站在天之一隅，晨光给它戴上霞彩。
+人不能在他的历史中表现出他自己，他在历史中挣扎着露出头角。
+上帝对人说道：『我要治愈你，所以要伤害你；我爱你，所以要惩罚你。』
+根是地下的枝，枝是空中的根。
+回声嘲笑她的原声，借以证明她是原声。
+当富贵利达的人夸说他得到神的特别恩惠时，上帝却羞了。
+阴影戴上她的面幕，秘密地，温顺地，用她的沉默的爱的脚步，跟在光之后。
+群星不怕显得像萤火虫那样。
+谢谢神，我不是一个权力的轮子，而是被压在这轮下的活人之一。
+使卵石臻于完美的，并非锤的打击，而是水的且歌且舞。
+采着花瓣时，得不到花的美丽。
+美呀，在爱中找你自己吧，不要到你镜子的谄谀里去找。
+虚伪永远不能凭借它生长在权力中而变成真实。
+太阳横过西方的海面时，对着东方，留下他最后的敬礼。
+不要从你自己的袋里掏出勋绩，借给你的朋友，这是污辱他的。
+麻雀看见孔雀负担着它的翎尾，替它担忧。
+沟洫总喜欢想：河流的存在，专为它供给水流。`,
+    fullUrl:'https://en.wikisource.org/wiki/Stray_Birds'},
+  {book:'老人与海',author:'海明威',cat:'成长励志',theme:'成长',
+    intro:'海明威的诺贝尔文学奖名篇，讲述老渔夫与大鱼搏斗的孤独、尊严与不屈。',
+    excerpt:`圣地亚哥是个老渔夫，在墨西哥湾流上接连八十四天没钓到一条鱼，连跟着他的男孩马诺林也被父母逼着上了别的船。男孩每天来见他，给他备饭、谈棒球，老人便觉得自己并不孤单。头四十天男孩还跟着他，后来父母嫌老人背运，硬把孩子调走了。
+第八十五天，他驶向远海。钓丝忽然一沉——是一条大得惊人的马林鱼。鱼拖着小船往深海去，老人的手被勒出血，脊背疼得像要断掉，他却不肯放：「一个人可以被毁灭，但不能被打败。」这句话，他在心里念了一整夜。
+他与鱼耗了两天两夜。他和鱼说话，称它兄弟；他佩服它的沉着、它的尊严，也怜惜它终将死去。等鱼终于浮出水面，银亮的身子比小船还长，老人用鱼叉刺穿了它的心脏，鱼血把海水染成暗红。
+血腥引来鲨鱼。先是一条灰鲭鲨夺去一块肉，老人用桨柄砸它；接着成群的鲨鱼围上来，他叉、他打、他骂，桨断了用舵，能用的都用上了。可鱼肉仍被一片片撕走，最后只剩一副巨大的白骨，在月光下泛着冷光，像一座沉默的纪念碑。
+他回到港时，人们围着那副骨架惊叹。男孩哭了，要给他拿热咖啡、要再随他出海。老人回到家，倒在床上，梦见年少时见过的非洲沙滩，狮子在暮色里安静地玩耍——那是他一生里，最温柔的画面，也是他不肯认输的证据。
+马林鱼没有带回家，尊严却留在了他身上。失败与胜利，在这位老人这里，原是同一件事的两面：他输了鱼，却没有输掉自己。第二天醒来，他想着要再补一面结实的网，而男孩说他也要回来——这一次，不管别人怎么说，他要再陪老人出海。
+男孩把老人的钓绳、鱼叉和桨都仔细洗净晾好，像照料一位凯旋的将军。他说，等补好网，他们就去更远的海，那条大鱼还在某处游着，而他们谁也没输。
+后来有游客对着那副骨架惊叹，说从没见过这么大的鱼，又问是不是鲨鱼。男孩听了，只是把老人的旧外套叠好——他懂得，真正的庞大，从来不在骨头上，而在那个人不肯松手的手里。
+老人醒来，看见男孩坐在床边，便说：「我们又能一起出海了。」男孩点头。窗外天还没亮，可两个人心里，都已经看见了那片正在醒来的海。
+老人的双手满是勒痕，像缠绕的老藤。男孩用盐水替他敷，说这双手比任何勋章都体面。
+那一夜，老人又梦见狮子。它们不再搏斗，只是并排躺在沙滩上，任浪花一下一下漫过脚掌。
+男孩的母亲本不愿他再跟老人，可男孩说：「他是最好的渔夫，比我见过的都好。」
+第二天，他们把补好的网晾在阳光下。网眼里漏下的，不只是水，还有一整夜的星光。
+那副骨架后来被孩子们当成了地标，天天跑去数它的肋骨。老人由着他们，自己只管补网、磨钩，等下一趟远海。`,
+    fullUrl:'https://en.wikisource.org/wiki/The_Old_Man_and_the_Sea'},
+  {book:'庄子',author:'庄周',cat:'哲学思辨',theme:'哲思',
+    intro:'庄周所著，以汪洋恣肆的寓言阐述逍遥与齐物之思，是道家另一座高峰。',
+    excerpt:`北冥有鱼，其名为鲲。鲲之大，不知其几千里也。化而为鸟，其名为鹏。鹏之背，不知其几千里也；怒而飞，其翼若垂天之云。是鸟也，海运则将徙于南冥。南冥者，天池也。《齐谐》者，志怪者也。《谐》之言曰：「鹏之徙于南冥也，水击三千里，抟扶摇而上者九万里，去以六月息者也。」野马也，尘埃也，生物之以息相吹也。天之苍苍，其正色邪？其远而无所至极邪？其视下也，亦若是则已矣。且夫水之积也不厚，则其负大舟也无力。覆杯水于坳堂之上，则芥为之舟；置杯焉则胶，水浅而舟大也。风之积也不厚，则其负大翼也无力。故九万里，则风斯在下矣，而后乃今培风；背负青天而莫之夭阏者，而后乃今将图南。
+蜩与学鸠笑之曰：「我决起而飞，枪榆枋，时则不至，而控于地而已矣，奚以之九万里而南为！」适莽苍者，三餐而反，腹犹果然；适百里者，宿舂粮；适千里者，三月聚粮。之二虫又何知！小知不及大知，小年不及大年。朝菌不知晦朔，蟪蛄不知春秋。而彭祖乃今以久特闻，众人匹之，不亦悲乎！
+汤之问棘也是已：穷发之北有冥海者，天池也。有鱼焉，其广数千里；有鸟焉，其名为鹏，背若泰山，翼若垂天之云，抟扶摇羊角而上者九万里，绝云气，负青天，然后图南。斥鴳笑之曰：「彼且奚适也？我腾跃而上，不过数仞而下，翱翔蓬蒿之间，此亦飞之至也。」此小大之辩也。故夫知效一官，行比一乡，德合一君，而征一国者，其自视也亦若此矣。而宋荣子犹然笑之；列子御风而行，泠然善也；彼虽免乎行，犹有所待者也。若夫乘天地之正，而御六气之辩，以游无穷者，彼且恶乎待哉！故曰：至人无己，神人无功，圣人无名。
+吾生也有涯，而知也无涯。以有涯随无涯，殆已！为善无近名，为恶无近刑，缘督以为经，可以保身，可以全生，可以养亲，可以尽年。
+庖丁为文惠君解牛，手之所触，肩之所倚，足之所履，膝之所踦，砉然向然，奏刀騞然，莫不中音。文惠君曰：「嘻，善哉！技盖至此乎？」庖丁释刀对曰：「臣之所好者道也，进乎技矣。始臣之解牛之时，所见无非牛者；三年之后，未尝见全牛也。方今之时，臣以神遇而不以目视，官知止而神欲行。依乎天理，批大郤，导大窾，因其固然。彼节者有间，而刀刃者无厚；以无厚入有间，恢恢乎其于游刃必有余地矣。是以十九年而刀刃若新发于硎。」
+昔者庄周梦为胡蝶，栩栩然胡蝶也，自喻适志与！不知周也。俄然觉，则蘧蘧然周也。不知周之梦为胡蝶与，胡蝶之梦为周与？周与胡蝶，则必有分矣。此之谓物化。
+秋水时至，百川灌河，泾流之大，两涘渚崖之间，不辩牛马。于是焉河伯欣然自喜，以天下之美为尽在己。顺流而东行，至于北海，东面而视，不见水端。于是焉河伯始旋其面目，望洋向若而叹曰：「野语有之曰：『闻道百，以为莫己若者。』我之谓也。」
+井蛙不可以语于海者，拘于虚也；夏虫不可以语于冰者，笃于时也；曲士不可以语于道者，束于教也。
+庄子与惠子游于濠梁之上。庄子曰：「鯈鱼出游从容，是鱼之乐也。」惠子曰：「子非鱼，安知鱼之乐？」庄子曰：「子非我，安知我不知鱼之乐？」惠子曰：「我非子，固不知子矣；子固非鱼也，子之不知鱼之乐，全矣！」庄子曰：「请循其本。子曰『汝安知鱼乐』云者，既已知吾知之而问我，我知之濠上也。」
+泉涸，鱼相与处于陆，相呴以湿，相濡以沫，不如相忘于江湖。
+惠子谓庄子曰：「吾有大树，人谓之樗。其大本拥肿而不中绳墨，其小枝卷曲而不中规矩，立之涂，匠者不顾。今子之言，大而无用，众所同去也。」庄子曰：「子独不见狸狌乎？卑身而伏，以候敖者；东西跳梁，不避高下；中于机辟，死于罔罟。今夫斄牛，其大若垂天之云。此能为大矣，而不能执鼠。今子有大树，患其无用，何不树之于无何有之乡，广莫之野，彷徨乎无为其侧，逍遥乎寝卧其下？不夭斤斧，物无害者，无所可用，安所困苦哉！」`,
+    fullUrl:'https://zh.wikisource.org/wiki/莊子'},
+  {book:'陶渊明集',author:'陶渊明',cat:'生活美学',theme:'生活',
+    intro:'东晋诗人陶渊明的诗文集，恬淡自然，开田园诗一派，写尽归隐与闲适之乐。',
+    excerpt:`晋太元中，武陵人捕鱼为业。缘溪行，忘路之远近。忽逢桃花林，夹岸数百步，中无杂树，芳草鲜美，落英缤纷。渔人甚异之。复前行，欲穷其林。
+林尽水源，便得一山，山有小口，仿佛若有光。便舍船，从口入，初极狭，才通人。复行数十步，豁然开朗。土地平旷，屋舍俨然，有良田、美池、桑竹之属。阡陌交通，鸡犬相闻。其中往来种作，男女衣着，悉如外人。黄发垂髫，并怡然自乐。
+见渔人，乃大惊，问所从来，具答之。便要还家，设酒杀鸡作食。村中闻有此人，咸来问讯。自云先世避秦时乱，率妻子邑人来此绝境，不复出焉，遂与外人间隔。问今是何世，乃不知有汉，无论魏晋。
+此人一一为具言所闻，皆叹惋。余人各复延至其家，皆出酒食。停数日，辞去。此中人语云：「不足为外人道也。」
+既出，得其船，便扶向路，处处志之。及郡下，诣太守，说如此。太守即遣人随其往，寻向所志，遂迷，不复得路。南阳刘子骥，高尚士也，闻之，欣然规往。未果，寻病终。后遂无问津者。
+嬴氏乱天纪，贤者避其世。黄绮之商山，伊人亦云逝。往迹寖复湮，来径遂芜废。相命肆农耕，日入从所憩。桑竹垂余荫，菽稷随时艺。春蚕收长丝，秋熟靡王税。童孺纵行歌，斑白欢游诣。草荣识节和，木衰知风厉。虽无纪历志，四时常成岁。怡然有余乐，于何劳智慧。
+归去来兮，田园将芜胡不归！既自以心为形役，奚惆怅而独悲？悟已往之不谏，知来者之可追。实迷途其未远，觉今是而昨非。舟遥遥以轻飏，风飘飘而吹衣。问征夫以前路，恨晨光之熹微。
+云无心以出岫，鸟倦飞而知还。景翳翳以将入，抚孤松而盘桓。木欣欣以向荣，泉涓涓而始流。善万物之得时，感吾生之行休。已矣乎！寓形宇内复几时？曷不委心任去留？
+结庐在人境，而无车马喧。问君何能尔？心远地自偏。采菊东篱下，悠然见南山。山气日夕佳，飞鸟相与还。此中有真意，欲辨已忘言。
+先生不知何许人也，亦不详其姓字，宅边有五柳树，因以为号焉。闲静少言，不慕荣利。好读书，不求甚解；每有会意，便欣然忘食。性嗜酒，家贫不能常得。亲旧知其如此，或置酒而招之；造饮辄尽，期在必醉。既醉而退，曾不吝情去留。环堵萧然，不蔽风日；短褐穿结，箪瓢屡空，晏如也。常著文章自娱，颇示己志。忘怀得失，以此自终。
+种豆南山下，草盛豆苗稀。晨兴理荒秽，带月荷锄归。道狭草木长，夕露沾我衣。衣沾不足惜，但使愿无违。
+少无适俗韵，性本爱丘山。误落尘网中，一去三十年。羁鸟恋旧林，池鱼思故渊。开荒南野际，守拙归园田。方宅十余亩，草屋八九间。榆柳荫后檐，桃李罗堂前。暧暧远人村，依依墟里烟。狗吠深巷中，鸡鸣桑树颠。户庭无尘杂，虚室有余闲。久在樊笼里，复得返自然。
+盛年不重来，一日难再晨。及时当勉励，岁月不待人。`,
+    fullUrl:'https://zh.wikisource.org/wiki/陶淵明集'},
+  {book:'论语·为政',author:'孔子',cat:'哲学思辨',theme:'哲思',
+    intro:'《论语》第二篇，论为政以德与为学修身，是理解儒家治道与人格修养的关键。',
+    excerpt:`子曰：「为政以德，譬如北辰，居其所，而众星共之。」
+子曰：「诗三百，一言以蔽之，曰思无邪。」
+子曰：「道之以政，齐之以刑，民免而无耻；道之以德，齐之以礼，有耻且格。」
+子曰：「吾十有五而志于学；三十而立；四十而不惑；五十而知天命；六十而耳顺；七十而从心所欲，不逾矩。」
+孟懿子问孝。子曰：「无违。」樊迟御，子告之曰：「孟孙问孝于我，我对曰无违。」樊迟曰：「何谓也？」子曰：「生，事之以礼；死，葬之以礼，祭之以礼。」
+孟武伯问孝。子曰：「父母，唯其疾之忧。」子游问孝。子曰：「今之孝者，是谓能养。至于犬马，皆能有养。不敬，何以别乎？」
+子曰：「吾与回言终日，不违如愚。退而省其私，亦足以发。回也不愚。」
+子曰：「视其所以，观其所由，察其所安，人焉廋哉！人焉廋哉！」
+子曰：「温故而知新，可以为师矣。」子曰：「君子不器。」
+子贡问君子。子曰：「先行其言，而后从之。」
+子曰：「君子周而不比，小人比而不周。」
+子曰：「学而不思则罔，思而不学则殆。」
+子曰：「攻乎异端，斯害也已。」
+子曰：「由，诲女知之乎！知之为知之，不知为不知，是知也。」
+子张学干禄。子曰：「多闻阙疑，慎言其余，则寡尤；多见阙殆，慎行其余，则寡悔。言寡尤，行寡悔，禄在其中矣。」
+哀公问曰：「何为则民服？」孔子对曰：「举直错诸枉，则民服；举枉错诸直，则民不服。」
+季康子问：「使民敬忠以劝，如之何？」子曰：「临之以庄，则敬；孝慈，则忠；举善而教不能，则劝。」
+或谓孔子曰：「子奚不为政？」子曰：「书云：『孝乎惟孝，友于兄弟。』施于有政，是亦为政，奚其为为政？」
+子曰：「人而无信，不知其可也。大车无輗，小车无軏，其何以行之哉？」
+子曰：「非其鬼而祭之，谄也。见义不为，无勇也。」`,
+    fullUrl:'https://zh.wikisource.org/wiki/論語'},
+  {book:'小王子',author:'圣埃克苏佩里',cat:'情感',theme:'情感',
+    intro:'同《小王子》，取另一段关于星星、铃铛与离别的温柔告别。',
+    excerpt:`狐狸把麦田的颜色送给了男孩。从此���风吹过金色的麦浪，他便想起狐狸毛色的温暖；可他真正放不下的，始终是那朵刁钻又柔弱的玫瑰。狐狸是在离别前，把这一片金黄当作礼物，悄悄留给他的。
+他在地球的一座玫瑰园里，看见五千朵和他那朵几乎一模一样的花，忽然跪下来哭了。他原以为自己富有，拥有一朵宇宙间独一无二的花；原来他有的，不过是最寻常的一种。骄傲碎了一地，他第一次看清自己的贫穷，也第一次明白，重要与否从不取决于外表。
+可狐狸的话把他从泪里捞了起来：「你要对你驯养的东西负责。」狐狸说，驯养就是建立联系——你若答应下午四点来，三点起我便开始高兴，因为等待也有了滋味；你来的步子越近，我的心便跳得越响。男孩懂了：责任不是枷锁，是驯养之后自然生长出的重量。
+他想起自己浇过的水、挡过的风、捉过的虫，想起她故意咳嗽好教他慌张——那一切笨拙的表演，都只属于他们之间。爱不是「独一无二」这个事实，而是「我愿意为你」这件行动；你为谁花费过时间，谁才真的属于你。
+离别时，他托朋友在星空下寻找他的笑。他又说起点灯人——那人的星球小得转得飞快，一分钟便是一昼夜，他必须每一分钟点一次灯、熄一次灯，从不停歇。「他关心的是别人，不是自己，」男孩说，「所以这人，是唯一不可笑的人。」在那么多荒唐的大人里，点灯人让他敬重。
+蛇答应送他回家，条件是轻轻咬他一口。男孩把一只铃铛挂在喉头：「你听，就像一口井在唱歌。」他倒下时，蛇的牙痕很轻，轻得像一阵睡意。沙地上没有尸体——他只是回到了自己的星球，去给那朵玫瑰重新浇水、重新听她骄傲，也重新学着读懂她沉默里的爱。
+后来那名坠落撒哈拉的飞行员说：倘若哪天你路过非洲，看见一个金发男孩对你笑，请写信告诉我，他回来了。因为那口井的歌声，从此只为他一个人响；而那五千朵玫瑰，终究比不上一朵被他亲手浇过水的。驯养过的，才谁也替不了。
+那口井的水是甜的，像被驯养过的情谊。男孩临走前喝了一口，说要把这味道带回去，给那朵总爱咳嗽的玫瑰也尝一尝。爱，原是要带回去，分给那个让你牵挂的人。
+他最后望了一眼地球——那颗蓝色的小点，在星海里几乎看不见。可他知道，那里有一朵花，正等着他回去，替她把那四根刺，也当作宝贝一样收好。
+许多年后，飞行员偶尔还会抬头，在某一颗星上，听见一阵极轻的铃铛声。他知道，那是有人，正替另一朵花，认真地浇水。
+玫瑰后来也学会了想念。她在那颗小星球上，对着星空发呆，第一次懂得：骄傲，从来撑不住一句真心话。`,
+    fullUrl:'https://fr.wikisource.org/wiki/Le_Petit_Prince'},
+  {book:'瓦尔登湖',author:'梭罗',cat:'生活美学',theme:'生活',
+    intro:'同《瓦尔登湖》，取关于简朴、独处与反刍日常的段落。',
+    excerpt:`关于生计，我算过一笔明白账。盖小屋、买口粮、种豆子，一年的花销不过几十块，余下的时间便全是自己的。人总以为非拼命挣钱不可，其实大多的辛劳，都花在了维持一套自己并不真正需要的排场上——更大的屋、更阔的桌、更忙的应酬，到头来不过替别人养活了仓库。
+我在湖边种了七里路长的豆田。锄草是最朴素的哲学课：草与你争地，也提醒你什么叫「够用」。收成大半喂了土里的虫和路过的鸟，我倒毫不可惜——它们也在这片地上活着，凭什么只许人独享？我耕种的，原也不只是豆子。
+铁路从林地边穿过，火车轰隆，载着远方的货与梦。我偶尔去枕木间拾捡掉落的煤渣，权当向时代借一点暖。可我更愿意守着湖，看它怎样把整座天空、整片云，都静静收进怀里——那一汪水，比所有的账本都诚实。
+读书是我的另一片湖。我翻过荷马，读过那些古老的经典，像把远古的星光接进小屋。别被杂乱的新书淹没；宁可把一本好书读上几遍，也不肯潦草地翻过十本。书读得慢，才读得进；读得进，才真正成了自己的。
+也有访客。樵夫、诗人、猎人陆续来坐，我们围着火聊天气、聊鸟、聊各自心里的湖。客人走了，屋子更静，却并不空——方才那些话，还留在梁上，像没有散尽的烟。热闹有时，安静有时，都刚刚好。
+我并非厌弃人群，只是更珍惜不被打扰的清醒。独处时，你才听得见自己真正想要什么。梭罗说：我步入丛林，是因为我希望生活得有意义，只面对生活基本的实事，而不是等到临死才发现自己从未活过。
+两年后我离开林子，像睡醒的人推开门窗。瓦尔登湖没有留住我，它只是替我把日子滤了一遍，让我知道：简朴，原是可以这样丰盈的；一个人需要的很少，而因此得到的，却很多。多余的财富只能买到多余的东西，这是我在湖边学到的最朴素也最贵的一课。
+我常想，人其实是一只口袋，装得越满，就越弯不下腰看路。瓦尔登湖教会我的，不过是把口袋里的石子倒掉几颗，好腾出手，接住从天上落下来的星光。
+若你哪天也觉得心里发堵，不妨学我，去水边坐一坐。不必盖屋，只需把算计暂且放下——你会发现，原来你缺的从来不是更多，而是更少。
+我把在湖边的日子讲给城里人听，他们多半摇头，说那样太冷清。可我心里清楚：真正的冷清，是挤在人群里，却想不起自己究竟要什么。
+盖屋时我连钉子都一笔笔记下：木板一块三角七分，屋顶用的旧木板一又四分之一，铰链一对十四分。清清楚楚，反倒睡得安稳。
+有回我算账算到半夜，忽然笑出声——原来我一年最大的开销，竟是那叠舍不得扔的旧报纸。
+有邻居担心我一个人会闷出病，我笑：闷的是身子，丰的是心。心若满了，身子到哪里都热闹。`,
+    fullUrl:'https://en.wikisource.org/wiki/Walden'},
+  {book:'道德经',author:'老子',cat:'哲学思辨',theme:'哲思',
+    intro:'同《道德经》，取另一组关于盈虚、祸福与谦下之道的章节。',
+    excerpt:`曲则全，枉则直，洼则盈，敝则新，少则得，多则惑。是以圣人抱一为天下式。
+飘风不终朝，骤雨不终日。孰为此者？天地。天地尚不能久，而况于人乎？故从事于道者，同于道。
+信言不美，美言不信。善者不辩，辩者不善。知者不博，博者不知。圣人不积，既以为人己愈有，既以与人己愈多。
+祸兮福之所倚，福兮祸之所伏。孰知其极？其无正也。正复为奇，善复为妖。人之迷，其日固久。
+大成若缺，其用不弊；大盈若冲，其用不穷。大直若屈，大巧若拙，大辩若讷。
+天下之至柔，驰骋天下之至坚。无有入无间。吾是以知无为之有益。
+知不知，上；不知知，病。夫唯病病，是以不病。圣人不病，以其病病，是以不病。
+重为轻根，静为躁君。是以君子终日行不离辎重。虽有荣观，燕处超然。奈何万乘之主，而以身轻天下？轻则失根，躁则失君。
+大曰逝，逝曰远，远曰反。故道大，天大，地大，王亦大。域中有四大，而王居其一焉。
+江海所以能为百谷王者，以其善下之，故能为百谷王。是以圣人欲上民，必以言下之；欲先民，必以身后之。
+天长地久。天地所以能长且久者，以其不自生，故能长生。是以圣人后其身而身先，外其身而身存。非以其无私耶？故能成其私。`,
+    fullUrl:'https://zh.wikisource.org/wiki/道德經'}
+];
+const podcastPool=[
+  {name:'商业就是这样',episode:'当「风口」退潮之后',theme:'金融',duration:'35分钟',url:'https://www.xiaoyuzhoufm.com/'},
+  {name:'声动早咖啡',episode:'一周财经快评',theme:'金融',duration:'20分钟',url:'https://www.xiaoyuzhoufm.com/'},
+  {name:'不合时宜',episode:'我们该如何理解当下的生活',theme:'个人成长',duration:'60分钟',url:'https://www.xiaoyuzhoufm.com/'},
+  {name:'故事FM',episode:'一个普通人的城市漂流',theme:'城市生活',duration:'40分钟',url:'https://www.xiaoyuzhoufm.com/'},
+  {name:'螺丝在拧紧',episode:'在不确定中重建秩序',theme:'个人成长',duration:'50分钟',url:'https://www.xiaoyuzhoufm.com/'},
+  {name:'城市漫游者',episode:'在街角遇见一座城',theme:'城市生活',duration:'30分钟',url:'https://www.xiaoyuzhoufm.com/'}
+];
+function seedNews(){
+  const raw=[
+    ['财经','高','央行公布最新货币政策动向','示例：央行提及保持流动性合理充裕，引导融资成本稳中有降。（示例素材，请替换为真实资讯）','https://www.pbc.gov.cn'],
+    ['财经','中','A股主要指数集体收涨','示例：受政策预期提振，沪深两市成交额放大，板块轮动活跃。（示例素材）','https://finance.sina.com.cn'],
+    ['财经','中','多家商业银行下调存款利率','示例：继上一轮后，多家银行再次下调中长期存款利率。（示例素材）','https://www.pbc.gov.cn'],
+    ['财经','中','人民币汇率双向波动加大','示例：在外围变量影响下，人民币汇率弹性进一步增强。（示例素材）','https://www.pbc.gov.cn'],
+    ['国内外政治趋势','高','全球主要经济体进入议息窗口','示例：市场关注各央行利率路径分歧与政策转向节奏。（示例素材）','https://www.imf.org'],
+    ['国内外政治趋势','中','国际能源供需格局生变','示例：清洁能源装机提速，传统能源价格波动加大。（示例素材）','https://www.iea.org'],
+    ['国内外政治趋势','低','多国就气候资金机制展开磋商','示例：各方就碳市场与资金机制展开新一轮磋商。（示例素材）','https://unfccc.int'],
+    ['国内外政治趋势','中','区域经贸合作取得新进展','示例：多项双边与多边经贸安排落地，产业链协同加深。（示例素材）','https://www.wto.org'],
+    ['深圳本地','高','深圳地铁新线开通试运营','示例：深圳轨道交通某新线开通试运营，覆盖原特区外多个片区。（示例素材）','https://www.sz.gov.cn'],
+    ['深圳本地','中','深圳出台新一轮促消费措施','示例：深圳出台促消费政策，涵盖家电以旧换新、文旅消费券等。（示例素材）','https://www.sz.gov.cn'],
+    ['深圳本地','低','深圳湾公园滨海步道升级完工','示例：深圳湾公园完成步道升级，新增观鸟点与便民设施。（示例素材）','https://www.sz.gov.cn'],
+    ['深圳本地','中','深圳推进城市更新与适老化改造','示例：老旧小区改造与社区适老化建设加快落地。（示例素材）','http://www.sz.gov.cn']
+  ];
+  return raw.map((r,i)=>({id:'n'+(i+1),category:r[0],importance:r[1],title:r[2],summary:r[3],url:r[4]}));
+}
+
+/* ============ 爬取的绘画素材库（Wikimedia Commons，公共领域/自由授权） ============ */
+const seedDrawLib=[
+{"id":"dl1","name":"\"Pipe Dream.\" Pencil Drawing by Irma Hesse","category":"铅笔素描","theme":"素描造型","difficulty":3,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/%22Pipe_Dream.%22_Pencil_Drawing_by_Irma_Hesse.jpg/500px-%22Pipe_Dream.%22_Pencil_Drawing_by_Irma_Hesse.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:\"Pipe_Dream.\"_Pencil_Drawing_by_Irma_Hesse.jpg","status":"想画","lic":"Public domain"},
+{"id":"dl2","name":"\"Rex Mays,\" c. 1962, by Robert Edward Weaver","category":"铅笔素描","theme":"素描造型","difficulty":4,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/%22Rex_Mays%2C%22_c._1962%2C_by_Robert_Edward_Weaver.jpg/500px-%22Rex_Mays%2C%22_c._1962%2C_by_Robert_Edward_Weaver.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:\"Rex_Mays,\"_c._1962,_by_Robert_Edward_Weaver.jpg","status":"想画","lic":"CC BY-SA 3.0"},
+{"id":"dl3","name":"\"THE FRESHMAN'S DREAM\" skeletons in art, from- El Rodeo (1908) (147113) (cropped)","category":"铅笔素描","theme":"素描造型","difficulty":3,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/%22THE_FRESHMAN%22S_DREAM%22_skeletons_in_art%2C_from-_El_Rodeo_%281908%29_%28147113%29_%28cropped%29.jpg/500px-%22THE_FRESHMAN%22S_DREAM%22_skeletons_in_art%2C_from-_El_Rodeo_%281908%29_%28147113%29_%28cropped%29.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:\"THE_FRESHMAN\"S_DREAM\"_skeletons_in_art,_from-_El_Rodeo_(1908)_(147113)_(cropped).jpg","status":"想画","lic":"Public domain"},
+{"id":"dl4","name":"\"The Patriots\" - NARA - 558934","category":"铅笔素描","theme":"素描造型","difficulty":4,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/%22The_Patriots%22_-_NARA_-_558934.jpg/500px-%22The_Patriots%22_-_NARA_-_558934.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:\"The_Patriots\"_-_NARA_-_558934.jpg","status":"想画","lic":"Public domain"},
+{"id":"dl5","name":"2023 Henrique Matos Flower of Life 02","category":"彩铅","theme":"彩铅上色","difficulty":2,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/2023_Henrique_Matos_Flower_of_Life_02.jpg/500px-2023_Henrique_Matos_Flower_of_Life_02.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:2023_Henrique_Matos_Flower_of_Life_02.jpg","status":"想画","lic":"CC BY-SA 4.0"},
+{"id":"dl6","name":"3267. Rafael Barradas - Dibujo 6","category":"彩铅","theme":"彩铅上色","difficulty":3,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/3267._Rafael_Barradas_-_Dibujo_6.png/500px-3267._Rafael_Barradas_-_Dibujo_6.png","tutorial":"https://commons.wikimedia.org/wiki/File:3267._Rafael_Barradas_-_Dibujo_6.png","status":"想画","lic":"Public domain"},
+{"id":"dl7","name":"750 años Pirna 1983 póster","category":"彩铅","theme":"彩铅上色","difficulty":3,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/750_a%C3%B1os_Pirna_1983_p%C3%B3ster.jpg/500px-750_a%C3%B1os_Pirna_1983_p%C3%B3ster.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:750_años_Pirna_1983_póster.jpg","status":"想画","lic":"Public domain"},
+{"id":"dl8","name":"Adele Donaldson, by Anthony Frederick Augustus Sandys","category":"彩铅","theme":"彩铅上色","difficulty":4,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Adele_Donaldson%2C_by_Anthony_Frederick_Augustus_Sandys.jpg/500px-Adele_Donaldson%2C_by_Anthony_Frederick_Augustus_Sandys.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:Adele_Donaldson,_by_Anthony_Frederick_Augustus_Sandys.jpg","status":"想画","lic":"Public domain"},
+{"id":"dl9","name":"\"Gen Z Awakens\"","category":"丙烯画","theme":"丙烯创作","difficulty":3,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/%22Gen_Z_Awakens%22.jpg/500px-%22Gen_Z_Awakens%22.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:\"Gen_Z_Awakens\".jpg","status":"想画","lic":"CC BY 4.0"},
+{"id":"dl10","name":"\"MZEE WA MADAFU\"","category":"丙烯画","theme":"丙烯创作","difficulty":4,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/%22MZEE_WA_MADAFU%22.jpg/500px-%22MZEE_WA_MADAFU%22.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:\"MZEE_WA_MADAFU\".jpg","status":"想画","lic":"CC BY 4.0"},
+{"id":"dl11","name":"\"PION-IT-MIN\"","category":"丙烯画","theme":"丙烯创作","difficulty":3,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/%22PION-IT-MIN%22.jpg/500px-%22PION-IT-MIN%22.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:\"PION-IT-MIN\".jpg","status":"想画","lic":"CC BY-SA 4.0"},
+{"id":"dl12","name":"\"Pythagorean Tree\"","category":"丙烯画","theme":"丙烯创作","difficulty":4,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/%22Pythagorean_Tree%22.jpg/500px-%22Pythagorean_Tree%22.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:\"Pythagorean_Tree\".jpg","status":"想画","lic":"Public domain"},
+{"id":"dl13","name":"线条插画示例 · 典礼现场","category":"简笔画","theme":"简笔线条","difficulty":2,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/01.07_%E7%B8%BD%E7%B5%B1%E5%87%BA%E5%B8%AD%E3%80%8C%E5%9C%8B%E5%AE%B6%E9%9B%BB%E5%BD%B1%E5%8F%8A%E8%A6%96%E8%81%BD%E6%96%87%E5%8C%96%E4%B8%AD%E5%BF%83%E9%96%8B%E9%A4%A8%E5%85%B8%E7%A6%AE%E3%80%8D_%2851805637699%29.jpg/500px-01.07_%E7%B8%BD%E7%B5%B1%E5%87%BA%E5%B8%AD%E3%80%8C%E5%9C%8B%E5%AE%B6%E9%9B%BB%E5%BD%B1%E5%8F%8A%E8%A6%96%E8%81%BD%E6%96%87%E5%8C%96%E4%B8%AD%E5%BF%83%E9%96%8B%E9%A4%A8%E5%85%B8%E7%A6%AE%E3%80%8D_%2851805637699%29.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:01.07_%E7%B8%BD%E7%B5%B1%E5%87%BA%E5%B8%AD%E3%80%8C%E5%9C%8B%E5%AE%B6%E9%9B%BB%E5%BD%B1%E5%8F%8A%E8%A6%96%E8%81%BD%E6%96%87%E5%8C%96%E4%B8%AD%E5%BF%83%E9%96%8B%E9%A4%A8%E5%85%B8%E7%A6%AE%E3%80%8D_(51805637699).jpg","status":"想画","lic":"CC BY 2.0"},
+{"id":"dl14","name":"Art maze","category":"简笔画","theme":"简笔线条","difficulty":2,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Art_maze.jpg/500px-Art_maze.jpg","tutorial":"https://commons.wikimedia.org/wiki/File:Art_maze.jpg","status":"想画","lic":"CC BY-SA 4.0"},
+{"id":"dl15","name":"Asanga","category":"简笔画","theme":"简笔线条","difficulty":2,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Asanga.gif/500px-Asanga.gif","tutorial":"https://commons.wikimedia.org/wiki/File:Asanga.gif","status":"想画","lic":"Public domain"},
+{"id":"dl16","name":"Blip (PSF)","category":"简笔画","theme":"简笔线条","difficulty":2,"refPath":"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Blip_%28PSF%29.png/500px-Blip_%28PSF%29.png","tutorial":"https://commons.wikimedia.org/wiki/File:Blip_(PSF).png","status":"想画","lic":"Public domain"}
+];
+
+/* ============ 爬取的烘焙食谱库（Wikimedia Cookbook） ============ */
+function seedRecipeLib(){return [
+  {id:'rl1',name:'白面包',category:'面包',difficulty:3,rating:0,
+    ingredients:'温水 2 杯 (约600g)\n干酵母 2¼ 茶匙 (约9g)\n糖或蜂蜜 1 盎司 (约28g)\n中筋面粉 2 磅 (约907g)\n盐 1 小撮 (约1g)',
+    steps:'1. 将一半温水倒入容器，加入酵母和糖（或蜂蜜）。\n2. 另取容器放入面粉，中间挖坑倒入酵母水，加一小撮盐，揉面并不断加水至面团厚实。\n3. 面团静置约 1 小时，再次揉面排气，整形成面包状，再静置 45 分钟。\n4. 烤箱 375°F (200°C) 烘烤 50–60 分钟，至内部温度约 95°C。\n5. 出炉，得到一条松软美味的面包。',
+    source:'https://en.wikibooks.org/wiki/Cookbook:White_Bread',note:'可换高筋面粉提升筋度。'},
+  {id:'rl2',name:'法式吐司',category:'吐司',difficulty:1,rating:0,
+    ingredients:'鸡蛋 1 个\n牛奶或奶油 约 ¼ 杯 (60ml)\n面包 2–3 片\n黄油/植物油 适量\n可选：香草精 ½ 茶匙、肉桂 ¼–1 茶匙、糖 ½ 茶匙',
+    steps:'1. 将鸡蛋、牛奶与可选调料在碗中打匀。\n2. 平底锅中小火加热，用黄油或油润锅。\n3. 面包每面在蛋液中蘸一下，吸收少许蛋液即可（软面包快蘸，硬面包多浸几秒）。\n4. 两面煎至金黄、内部熟透。\n5. 装盘，按喜好加枫糖浆、果酱、水果等。',
+    source:'https://en.wikibooks.org/wiki/Cookbook:French_Toast',note:'用隔夜硬吐司口感更佳。'},
+  {id:'rl3',name:'芝士欧姆蛋',category:'家常菜',difficulty:1,rating:0,
+    ingredients:'鸡蛋 2 个（室温打散）\n细盐 1 小撮\n蒙特利杰克芝士 1 杯（磨碎）\n马苏里拉芝士 ½ 杯（磨碎）\n车达芝士 ¼ 杯（磨碎）\n胡椒杰克芝士 2½ 片（切细）\n黄油 适量',
+    steps:'1. 不粘小煎锅中火加热，放入黄油至冒泡。\n2. 倒入蛋液与盐，煎至贴锅一面金黄。\n3. 在半边未熟蛋液上撒芝士，对折鸡蛋，煎至芝士融化受热。\n4. 出锅享用。',
+    source:'https://en.wikibooks.org/wiki/Cookbook:Cheese_Omelette',note:'芝士可自由替换。'},
+  {id:'rl4',name:'巧克力豆曲奇',category:'甜点',difficulty:3,rating:0,
+    ingredients:'黄油 2 条 (225g，软化)\n白砂糖 ¾ 杯 (180ml)\n红糖 ¾ 杯 (180ml，压实)\n香草精 ¼ 茶匙\n鸡蛋 2 个\n中筋面粉 2¼ 杯 (290g)\n小苏打 1 茶匙\n盐 1 茶匙\n半甜巧克力豆 2 杯\n坚果 5oz（可选）',
+    steps:'1. 烤箱预热 375°F (190°C)（想要软曲奇用 350°F/175°C）。\n2. 大碗中打发黄油与两种糖。\n3. 逐个加入鸡蛋打匀，加入香草精。\n4. 另碗将干粉过筛，分两次拌入湿料，翻拌均匀。\n5. 拌入巧克力豆（及坚果）。\n6. 用汤匙舀面团放烤盘。\n7. 烘烤 10–12 分钟至金黄，稍凉后移到晾网冷却。',
+    source:'https://en.wikibooks.org/wiki/Cookbook:Chocolate_Chip_Cookies_I',note:'红糖多则更软，白砂糖多则更脆。'},
+  {id:'rl5',name:'蛋炒饭',category:'家常菜',difficulty:1,rating:0,
+    ingredients:'熟米饭（冷藏隔夜饭更佳）\n酱油 适量\n油 适量\n豌豆、豆芽、小白菜、胡萝卜、甜玉米、豆腐、鸡蛋\n香辛料：黑胡椒、糖、盐\n可选肉类：鸡肉、叉烧、牛肉、虾',
+    steps:'1. 备料：豆腐可先煎；洋葱切丁；小白菜梗叶分开；豆芽洗净；肉类切片煮熟。\n2. 大煎锅下足量油，中高火加热，下米饭。\n3. 加酱油、肉类、鸡蛋及除洋葱豆芽外的蔬菜。\n4. 加黑胡椒、少许糖、盐。\n5. 米饭快好时加入豆腐、豆芽、洋葱，避免过熟。',
+    source:'https://en.wikibooks.org/wiki/Cookbook:Fried_Rice',note:'配料可自由替换，剩菜也好用。'},
+  {id:'rl6',name:'香蕉面包',category:'面包',difficulty:2,rating:0,
+    ingredients:'白砂糖 1 杯 (200g)\n黄油 ½ 杯 (113g，软化)\n香蕉（越熟越好）3 根，压成泥\n鸡蛋 2 个\n中筋面粉 2 杯 (250g)\n小苏打 ½ 茶匙\n酸奶/白脱牛奶 ⅓ 杯\n盐 ¼ 茶匙\n香草精 1 茶匙',
+    steps:'1. 烤箱预热 350°F (175°C)。\n2. 8×4 英寸 (20×10cm) 吐司模轻抹油。\n3. 所有材料放入大碗，充分拌匀。\n4. 面糊倒入模具。\n5. 烤箱中层烘烤 60 分钟，或至牙签插入中心拔出干净。',
+    source:'https://en.wikibooks.org/wiki/Cookbook:Banana_Bread_I',note:'用熟透的香蕉更香甜。'}
+];}
+
+/* ============ 通用弹窗 / CRUD（我的收藏） ============ */
+const MODULE_FIELDS={
+  recipes:[
+    {key:'name',label:'名称',type:'text',placeholder:'如：北海道吐司'},
+    {key:'category',label:'分类',type:'select',options:['面包','吐司','家常菜','甜点']},
+    {key:'difficulty',label:'难度星级',type:'select',options:['1','2','3','4','5']},
+    {key:'rating',label:'评分',type:'select',options:['1','2','3','4','5']},
+    {key:'ingredients',label:'用料清单',type:'textarea',placeholder:'每行一种'},
+    {key:'steps',label:'制作步骤',type:'textarea',placeholder:'分步描述'},
+    {key:'source',label:'来源链接',type:'text',placeholder:'https://...'},
+    {key:'note',label:'实操备注',type:'textarea',placeholder:'温度、心得等'}
+  ],
+  drawings:[
+    {key:'name',label:'名称',type:'text',placeholder:'如：窗外的小猫'},
+    {key:'category',label:'分类',type:'select',options:['简笔画','铅笔素描','彩铅','丙烯画']},
+    {key:'theme',label:'主题',type:'text',placeholder:'如：动物 / 风景'},
+    {key:'difficulty',label:'难度',type:'select',options:['1','2','3','4','5']},
+    {key:'refPath',label:'参考图路径',type:'text',placeholder:'图片URL 或本地路径'},
+    {key:'tutorial',label:'教程/来源链接',type:'text',placeholder:'https://...'},
+    {key:'status',label:'练习状态',type:'select',options:['想画','进行中','已完成']}
+  ],
+  english:[
+    {key:'date',label:'日期',type:'date',default:todayStr()},
+    {key:'duration',label:'阅读时长(分钟)',type:'number',default:30},
+    {key:'topic',label:'素材主题',type:'text',placeholder:'如：科技英语'},
+    {key:'newWords',label:'生词记录',type:'textarea',placeholder:'每行一个单词+释义'},
+    {key:'quotes',label:'金句摘抄',type:'textarea',placeholder:'喜欢的句子'},
+    {key:'note',label:'学习笔记',type:'textarea',placeholder:'复盘与心得'}
+  ]
+};
+function openModal(title,html){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=html;$('#modal').classList.remove('hidden');}
+function closeModal(){$('#modal').classList.add('hidden');}
+function openEntityForm(module,entity){
+  const arr=mineArr(module);const fields=MODULE_FIELDS[module];
+  let html='<form id="f">';
+  fields.forEach(f=>{
+    const val=entity?entity[f.key]:(f.default!=null?f.default:'');
+    html+='<label>'+esc(f.label)+'</label>';
+    if(f.type==='textarea')html+='<textarea name="'+f.key+'" rows="3" placeholder="'+(f.placeholder||'')+'">'+esc(val)+'</textarea>';
+    else if(f.type==='select')html+='<select name="'+f.key+'">'+f.options.map(o=>'<option '+(String(o)===String(val)?'selected':'')+'>'+esc(o)+'</option>').join('')+'</select>';
+    else html+='<input name="'+f.key+'" type="'+(f.type==='number'?'number':'text')+'" value="'+esc(val)+'" placeholder="'+(f.placeholder||'')+'">';
+  });
+  html+='<div class="modal-actions"><button type="button" class="btn-ghost" onclick="closeModal()">取消</button><button type="submit" class="btn-primary">保存</button></div></form>';
+  openModal(entity?'编辑':'新增',html);
+  $('#f').onsubmit=e=>{e.preventDefault();const data={};fields.forEach(f=>{data[f.key]=e.target[f.key].value;});
+    if(module==='english')data.duration=Number(data.duration)||0;
+    else{data.difficulty=Number(data.difficulty)||1;if(data.rating!=null)data.rating=Number(data.rating)||1;}
+    if(entity)Object.assign(entity,data);else{data.id=uid();arr.push(data);}
+    save();closeModal();renderActive();};
+}
+function addEntity(m){openEntityForm(m,null);}
+function editEntity(m,id){const it=mineArr(m).find(x=>x.id===id);if(it)openEntityForm(m,it);}
+function delEntity(m,id){if(confirm('确定删除这条记录？')){const arr=mineArr(m);const i=arr.findIndex(x=>x.id===id);if(i>=0)arr.splice(i,1);save();renderActive();toast('已删除');}}
+function addToMine(mod,libId){
+  const lib=mod==='recipes'?DB.recipeLib:DB.drawLib;
+  const mine=mineArr(mod);const src=lib.find(x=>x.id===libId);if(!src)return;
+  if(mine.some(m=>m.libId===libId)){toast('已在我的收藏中');return;}
+  const copy={id:uid(),libId:libId};
+  ['name','category','difficulty','rating','ingredients','steps','source','note','theme','refPath','tutorial','status'].forEach(k=>{if(src[k]!=null)copy[k]=src[k];});
+  if(copy.rating==null)copy.rating=3;
+  mine.push(copy);save();toast('已加入我的'+(mod==='recipes'?'美食集':'绘画集'));
+  if(mod==='recipes')renderRecipeLibBody();else renderDrawLibBody();
+}
+
+/* ============ 模块1 烘焙食谱 ============ */
+let recipeView='lib';
+function renderRecipes(){
+  $$('#recipeSub button').forEach(b=>b.classList.toggle('active',b.dataset.v===recipeView));
+  const f=$('#recipeFilters'),b=$('#recipeBody');
+  if(recipeView==='lib'){
+    f.innerHTML='<select id="rl-cat"><option value="">全部分类</option><option>面包</option><option>吐司</option><option>家常菜</option><option>甜点</option></select>'
+      +'<select id="rl-diff"><option value="">全部难度</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>'
+      +'<select id="rl-sort"><option value="default">默认排序</option><option value="rateDesc">评分高→低</option></select>';
+    ['rl-cat','rl-diff','rl-sort'].forEach(id=>$('#'+id).addEventListener('change',renderRecipeLibBody));
+    renderRecipeLibBody();
+  }else{
+    f.innerHTML='<select id="rm-cat"><option value="">全部分类</option><option>面包</option><option>吐司</option><option>家常菜</option><option>甜点</option></select>'
+      +'<button class="btn-primary" onclick="addEntity(\'recipes\')">＋ 新增美食</button>';
+    $('#rm-cat').addEventListener('change',renderRecipeMineBody);
+    renderRecipeMineBody();
+  }
+}
+function renderRecipeLibBody(){
+  const cat=$('#rl-cat').value,diff=$('#rl-diff').value,sort=$('#rl-sort').value;
+  let list=DB.recipeLib.filter(r=>(!cat||r.category===cat)&&(!diff||String(r.difficulty)===diff));
+  if(sort==='rateDesc')list=[...list].sort((a,b)=>(Number(b.rating)||0)-(Number(a.rating)||0));
+  const b=$('#recipeBody');
+  if(!list.length){b.innerHTML='<div class="empty">没有匹配的素材</div>';return;}
+  b.innerHTML=list.map(r=>{
+    const inMine=DB.recipeMine.some(m=>m.libId===r.id);
+    const catCls={'面包':'b-bread','吐司':'b-toast','家常菜':'b-home','甜点':'b-dessert'}[r.category]||'';
+    return '<div class="rcard"><div class="top"><b>'+esc(r.name)+'</b><span class="badge '+catCls+'">'+esc(r.category)+'</span></div>'
+      +'<div class="stars"><span class="lab">难度</span>'+stars(r.difficulty)+'</div>'
+      +'<div class="acts"><button class="btn-sm" onclick="tg(\'rlib-'+r.id+'\')">详情</button>'
+      +(inMine?'<button class="btn-sm ok">✓ 已收藏</button>':'<button class="btn-sm ok" onclick="addToMine(\'recipes\',\''+r.id+'\')">＋ 加入我的美食集</button>')
+      +'</div><div class="detail hidden" id="rlib-'+r.id+'">'
+      +(r.ingredients?'<b>用料：</b>\n'+esc(r.ingredients)+'\n\n':'')
+      +(r.steps?'<b>步骤：</b>\n'+esc(r.steps)+'\n\n':'')
+      +(r.note?'<b>备注：</b>'+esc(r.note)+'\n':'')
+      +(r.source?'<a href="'+esc(r.source)+'" target="_blank" rel="noopener">来源链接 ↗</a>':'')+'</div></div>';
+  }).join('');
+}
+function renderRecipeMineBody(){
+  const cat=$('#rm-cat').value;
+  let list=DB.recipeMine.filter(r=>!cat||r.category===cat);
+  const b=$('#recipeBody');
+  if(!list.length){b.innerHTML='<div class="empty">我的美食集还是空的，去「素材库」挑几道喜欢的吧～</div>';return;}
+  b.innerHTML=list.map(r=>{
+    const catCls={'面包':'b-bread','吐司':'b-toast','家常菜':'b-home','甜点':'b-dessert'}[r.category]||'';
+    return '<div class="rcard"><div class="top"><b>'+esc(r.name)+'</b><span class="badge '+catCls+'">'+esc(r.category)+'</span></div>'
+      +'<div class="stars"><span class="lab">难度</span>'+stars(r.difficulty)+' <span class="lab">评分</span>'+stars(r.rating)+'</div>'
+      +'<div class="acts"><button class="btn-sm" onclick="tg(\'rmine-'+r.id+'\')">详情</button>'
+      +'<button class="btn-sm" onclick="editEntity(\'recipes\',\''+r.id+'\')">编辑</button>'
+      +'<button class="btn-sm danger" onclick="delEntity(\'recipes\',\''+r.id+'\')">删除</button></div>'
+      +'<div class="detail hidden" id="rmine-'+r.id+'">'
+      +(r.ingredients?'<b>用料：</b>\n'+esc(r.ingredients)+'\n\n':'')
+      +(r.steps?'<b>步骤：</b>\n'+esc(r.steps)+'\n\n':'')
+      +(r.note?'<b>备注：</b>'+esc(r.note)+'\n':'')
+      +(r.source?'<a href="'+esc(r.source)+'" target="_blank" rel="noopener">来源链接 ↗</a>':'')+'</div></div>';
+  }).join('');
+}
+
+/* ============ 模块2 绘画素材 ============ */
+let drawView='lib';
+function renderDrawings(){
+  $$('#drawSub button').forEach(b=>b.classList.toggle('active',b.dataset.v===drawView));
+  const f=$('#drawFilters'),b=$('#drawBody');
+  if(drawView==='lib'){
+    f.innerHTML='<select id="dl-cat"><option value="">全部分类</option><option>简笔画</option><option>铅笔素描</option><option>彩铅</option><option>丙烯画</option></select>'
+      +'<input id="dl-theme" placeholder="按主题搜索" style="min-width:130px">';
+    ['dl-cat','dl-theme'].forEach(id=>$('#'+id).addEventListener('input',renderDrawLibBody));
+    renderDrawLibBody();
+  }else{
+    f.innerHTML='<select id="dm-cat"><option value="">全部分类</option><option>简笔画</option><option>铅笔素描</option><option>彩铅</option><option>丙烯画</option></select>'
+      +'<button class="btn-primary" onclick="addEntity(\'drawings\')">＋ 新增素材</button>';
+    $('#dm-cat').addEventListener('change',renderDrawMineBody);
+    renderDrawMineBody();
+  }
+}
+function renderDrawLibBody(){
+  const cat=$('#dl-cat').value,theme=$('#dl-theme').value.trim();
+  let list=DB.drawLib.filter(x=>(!cat||x.category===cat)&&(!theme||(x.theme||'').includes(theme)));
+  const b=$('#drawBody');
+  if(!list.length){b.innerHTML='<div class="empty">没有匹配的素材</div>';return;}
+  b.innerHTML=list.map(x=>{
+    const catCls={'简笔画':'b-simple','铅笔素描':'b-pencil','彩铅':'b-color','丙烯画':'b-acrylic'}[x.category]||'';
+    const inMine=DB.drawMine.some(m=>m.libId===x.id);
+    return '<div class="gcard"><div class="thumb"><img src="'+esc(x.refPath)+'" alt="" loading="lazy" onerror="this.parentNode.textContent=\'图片加载失败\'"></div>'
+      +'<div class="body"><b>'+esc(x.name)+'</b>'
+      +'<div><span class="badge '+catCls+'">'+esc(x.category)+'</span> <span class="badge st-want">'+esc(x.status)+'</span></div>'
+      +'<div class="meta">主题：'+(esc(x.theme)||'—')+' · 难度 '+stars(x.difficulty)+'</div>'
+      +'<div class="meta">授权：'+(esc(x.lic)||'—')+'</div>'
+      +'<div class="acts"><button class="btn-sm" onclick="tg(\'dlib-'+x.id+'\')">详情</button>'
+      +(inMine?'<button class="btn-sm ok">✓ 已收藏</button>':'<button class="btn-sm ok" onclick="addToMine(\'drawings\',\''+x.id+'\')">＋ 加入</button>')
+      +'</div><div class="detail hidden" id="dlib-'+x.id+'">'
+      +(x.tutorial?'<a href="'+esc(x.tutorial)+'" target="_blank" rel="noopener">来源/教程链接 ↗</a>':'')+'</div></div></div>';
+  }).join('');
+}
+function renderDrawMineBody(){
+  const cat=$('#dm-cat').value;
+  let list=DB.drawMine.filter(x=>!cat||x.category===cat);
+  const b=$('#drawBody');
+  if(!list.length){b.innerHTML='<div class="empty">我的绘画集还是空的，去「素材库」挑几张喜欢的参考图吧～</div>';return;}
+  b.innerHTML=list.map(x=>{
+    const catCls={'简笔画':'b-simple','铅笔素描':'b-pencil','彩铅':'b-color','丙烯画':'b-acrylic'}[x.category]||'';
+    const stCls={'想画':'st-want','进行中':'st-doing','已完成':'st-done'}[x.status]||'st-want';
+    const thumb=(x.refPath&&/^https?:\/\//.test(x.refPath))
+      ?'<div class="thumb"><img src="'+esc(x.refPath)+'" alt="" loading="lazy" onerror="this.parentNode.textContent=\'无图\'"></div>'
+      :'<div class="thumb">🖼 '+(esc(x.refPath)||'未设参考图')+'</div>';
+    return '<div class="gcard">'+thumb+'<div class="body"><b>'+esc(x.name)+'</b>'
+      +'<div><span class="badge '+catCls+'">'+esc(x.category)+'</span> <span class="badge '+stCls+'">'+esc(x.status)+'</span></div>'
+      +'<div class="meta">主题：'+(esc(x.theme)||'—')+' · 难度 '+stars(x.difficulty)+'</div>'
+      +'<div class="acts"><button class="btn-sm" onclick="editEntity(\'drawings\',\''+x.id+'\')">编辑</button>'
+      +(x.tutorial?'<a class="btn-sm" href="'+esc(x.tutorial)+'" target="_blank" rel="noopener">来源</a>':'')
+      +'<button class="btn-sm danger" onclick="delEntity(\'drawings\',\''+x.id+'\')">删除</button></div></div></div>';
+  }).join('');
+}
+
+/* ============ 模块3 每日阅读 ============ */
+function readScore(it){const fb=DB.reading.feedback.themes[it.theme]||{like:0,dislike:0};return (fb.like||0)-(fb.dislike||0);}
+function readPoolSorted(){const arr=bookPool.map((it,i)=>({...it,_i:i}));arr.sort((a,b)=>readScore(b)-readScore(a));return arr;}
+function getReadingOf(date){
+  if(!DB.reading.daily[date]){const s=readPoolSorted();DB.reading.daily[date]={base:dayIndex(date)%s.length,skip:0};save();}
+  const rec=DB.reading.daily[date];const s=readPoolSorted();return s[(rec.base+rec.skip)%s.length];
+}
+function renderReading(){
+  const date=todayStr();const ex=getReadingOf(date);
+  const rec=DB.reading.history[date]||{duration:30,interest:0,interested:null,note:''};
+  const card=$('#readingCard');
+  const excerptMin=readMin(ex.excerpt);
+  card.innerHTML='<div class="pill-row"><span class="badge b-cat">'+esc(ex.book)+'</span>'
+    +'<span class="badge b-toast">'+esc(ex.author)+'</span>'
+    +'<span class="badge b-home">分类·'+esc(ex.cat)+'</span>'
+    +'<span class="badge b-dessert">主题·'+esc(ex.theme)+'</span></div>'
+    +'<div class="book-intro">📌 '+esc(ex.intro)+'</div>'
+    +'<div class="excerpt">'+esc(ex.excerpt)+'</div>'
+    +'<div class="pill-row"><a class="btn-sm ok" href="'+esc(ex.fullUrl)+'" target="_blank" rel="noopener">📖 阅读全文 ↗</a>'
+    +'<span class="read-hint">本段约 '+excerptMin+' 分钟 · 目标 30 分钟（点「阅读全文」继续读即可达成）</span></div>'
+    +'<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:6px 0">'
+    +'<div>兴趣评分：<span class="rate" id="rrate">'+[1,2,3,4,5].map(i=>'<span class="'+(i<=rec.interest?'on':'')+'" data-v="'+i+'">★</span>').join('')+'</span></div>'
+    +'<button class="btn-sm ok" id="rlike" onclick="readFeedback(true)">👍 感兴趣</button>'
+    +'<button class="btn-sm danger" id="rdis" onclick="readFeedback(false)">👎 不感兴趣</button></div>'
+    +'<div class="pill-row"><label style="font-size:12.5px;color:var(--muted)">阅读时长(分钟)</label>'
+    +'<input id="rdur" type="number" value="'+rec.duration+'" style="width:90px;padding:7px 9px;border:1px solid var(--line);border-radius:9px"></div>'
+    +'<label style="font-size:12.5px;color:var(--muted)">读书笔记</label>'
+    +'<textarea id="rnote" rows="2" placeholder="写点想法…" style="width:100%;margin-top:5px;padding:9px;border:1px solid var(--line);border-radius:9px;font-family:inherit">'+esc(rec.note)+'</textarea>'
+    +'<div style="margin-top:10px"><button class="btn-primary" onclick="saveReading()">保存今日阅读</button></div>';
+  $$('#rrate span').forEach(s=>s.onclick=()=>{const v=+s.dataset.v;rec.interest=v;save();
+    $$('#rrate span').forEach(x=>x.classList.toggle('on',+x.dataset.v<=v));});
+  if(rec.interested===true)$('#rlike').classList.add('ok');
+  if(rec.interested===false)$('#rdis').classList.add('danger');
+  const [y,m]=todayStr().split('-');let days=0,min=0;
+  for(const k in DB.reading.history){if(k.startsWith(y+'-'+m+'-')){const r=DB.reading.history[k];if(r.duration>0){days++;min+=Number(r.duration)||0;}}}
+  $('#readingStats').innerHTML='<div class="card" style="margin:0"><div class="mini-stat"><b>'+days+'</b><span>本月阅读天数</span></div></div>'
+    +'<div class="card" style="margin:0"><div class="mini-stat"><b>'+min+'</b><span>本月累计分钟</span></div></div>'
+    +'<div class="card" style="margin:0"><div class="mini-stat"><b>'+Math.round(min/60*10)/10+'</b><span>本月累计小时</span></div></div>';
+}
+function readFeedback(like){
+  const date=todayStr();const ex=getReadingOf(date);
+  const fb=DB.reading.feedback.themes[ex.theme]||{like:0,dislike:0};
+  const rec=DB.reading.history[date]||{};
+  if(like&&rec.interested===true){fb.like=Math.max(0,(fb.like||0)-1);rec.interested=null;}
+  else if(!like&&rec.interested===false){fb.dislike=Math.max(0,(fb.dislike||0)-1);rec.interested=null;}
+  else{if(rec.interested===true)fb.like=Math.max(0,(fb.like||0)-1);if(rec.interested===false)fb.dislike=Math.max(0,(fb.dislike||0)-1);
+    if(like)fb.like=(fb.like||0)+1;else fb.dislike=(fb.dislike||0)+1;rec.interested=like;}
+  DB.reading.feedback.themes[ex.theme]=fb;DB.reading.history[date]=rec;save();
+  toast(like?'已标记「感兴趣」，后续将多推此类':'已标记「不感兴趣」，后续将减少此类');renderReading();
+}
+function saveReading(){
+  const date=todayStr();const rec=DB.reading.history[date]||{};
+  rec.duration=Number($('#rdur').value)||0;rec.note=$('#rnote').value;rec.interest=$$('#rrate span.on').length;
+  DB.reading.history[date]=rec;save();toast('今日阅读已保存');renderReading();
+}
+function readingSkip(){const date=todayStr();const rec=DB.reading.daily[date]||{base:0,skip:0};rec.skip=(rec.skip||0)+1;DB.reading.daily[date]=rec;save();renderReading();toast('已换一段');}
+
+/* ============ 模块4 每日新闻（真实爬取 + 全文内联） ============ */
+let _newsCache=null;
+async function loadNews(){
+  if(_newsCache) return _newsCache;
+  // 静态优先：news.json 已预生成全文，GitHub Pages / 沙箱预览 / Vercel 均可直接用
+  try{
+    const r2=await fetch('news.json',{cache:'no-store'});
+    if(r2.ok){ _newsCache=await r2.json(); return _newsCache; }
+  }catch(e){}
+  // 回退：Vercel 等带函数环境可实时抓取
+  try{
+    const r=await fetch('/api/news',{cache:'no-store'});
+    if(r.ok){ _newsCache=await r.json(); return _newsCache; }
+  }catch(e){}
+  _newsCache={updated:null,items:[]};
+  return _newsCache;
+}
+function fmtDate(iso){
+  if(!iso) return '';
+  const d=new Date(iso); if(isNaN(d)) return '';
+  const p=n=>String(n).padStart(2,'0');
+  return (d.getMonth()+1)+'月'+d.getDate()+'日 '+p(d.getHours())+':'+p(d.getMinutes());
+}
+async function renderNews(){
+  const box=$('#newsList');
+  box.innerHTML='<div class="empty">正在抓取今日真实新闻…</div>';
+  const data=await loadNews();
+  const cat=$('#n-cat').value;
+  let items=data.items||[];
+  if(cat) items=items.filter(x=>x.category===cat);
+  $('#newsUpdated').innerHTML = data.updated
+    ? '更新于 '+fmtDate(data.updated)+' · 共 '+(data.items?data.items.length:0)+' 条真实资讯'
+    : '（离线快照）共 '+items.length+' 条真实资讯';
+  if(!items.length){ box.innerHTML='<div class="empty">暂无该分类资讯，可点「刷新」重试。</div>'; return; }
+  const catCls={'科技·数码':'b-toast','商业·创投':'b-dessert','时政·综合':'b-home'};
+  box.innerHTML=items.map(it=>{
+    const cls=catCls[it.category]||'b-cat';
+    const meta=[it.source,fmtDate(it.pubDate)].filter(Boolean).join(' · ');
+    return '<div class="news-item" id="ni-'+esc(it.id)+'"><div class="nt">'+esc(it.title)
+      +'<span class="badge '+cls+'">'+esc(it.category)+'</span></div>'
+      +(meta?'<div class="ns-meta">'+esc(meta)+'</div>':'')
+      +(it.summary?'<div class="ns">'+esc(it.summary)+'</div>':'')
+      +'<div class="na"><button class="btn-sm ok" onclick="toggleFull(\''+esc(it.id)+'\',\''+esc(it.link)+'\')">📖 阅读全文</button>'
+      +'<a class="btn-sm" href="'+esc(it.link)+'" target="_blank" rel="noopener">查看原文 ↗</a></div>'
+      +'<div class="fulltext hidden" id="ft-'+esc(it.id)+'"></div></div>';
+  }).join('');
+}
+async function refreshNews(){ _newsCache=null; await renderNews(); toast('已刷新'); }
+async function toggleFull(id,url){
+  const ft=$('#ft-'+id); if(!ft) return;
+  if(!ft.classList.contains('hidden')){ ft.classList.add('hidden'); ft.innerHTML=''; return; }
+  ft.classList.remove('hidden'); ft.innerHTML='<div class="loading">正在提取正文…</div>';
+  // 优先用预生成全文（news.json 已含），无需运行时函数/代理，国内也能稳定展示
+  const item=(_newsCache&&_newsCache.items||[]).find(x=>x.id===id);
+  let text=item&&item.fullText?item.fullText:'';
+  if(!text||text.length<40){ text=await loadArticle(url); } // 回退：Vercel 函数 / 客户端代理
+  if(text&&text.length>40){ ft.innerHTML='<div class="article-text">'+esc(text)+'</div>'; }
+  else{ ft.innerHTML='<div class="ns">暂无法获取正文，请 <a href="'+esc(url)+'" target="_blank" rel="noopener">查看原文 ↗</a></div>'; }
+}
+async function loadArticle(url){
+  try{
+    const r=await fetch('/api/article?url='+encodeURIComponent(url),{cache:'no-store'});
+    if(r.ok){ const j=await r.json(); if(j.text&&j.text.length>40) return j.text; }
+  }catch(e){}
+  return await extractClientSide(url);
+}
+async function extractClientSide(url){
+  try{
+    const proxy='https://api.allorigins.win/raw?url='+encodeURIComponent(url);
+    const r=await fetch(proxy,{cache:'no-store'});
+    if(!r.ok) return '';
+    const html=await r.text();
+    const doc=new DOMParser().parseFromString(html,'text/html');
+    ['script','style','nav','header','footer','aside','noscript','svg','iframe'].forEach(t=>{
+      doc.querySelectorAll(t).forEach(e=>e.remove());
+    });
+    const cands=[...doc.querySelectorAll('p,div,article,section')];
+    let best=null,bestLen=0;
+    for(const el of cands){
+      const t=(el.textContent||'').replace(/\s+/g,' ').trim();
+      if(t.length>bestLen){ bestLen=t.length; best=t; }
+    }
+    const text=best?best.textContent.replace(/\s+/g,' ').trim():(doc.body?doc.body.textContent.replace(/\s+/g,' ').trim():'');
+    return text.length>40?text:'';
+  }catch(e){ return ''; }
+}
+
+/* ============ 模块5 英语打卡 ============ */
+function englishQuick(){
+  const t=todayStr();
+  if(DB.english.some(r=>r.date===t)){toast('今天已打卡，可在记录中编辑');editEntity('english',DB.english.find(r=>r.date===t).id);return;}
+  DB.english.push({id:uid(),date:t,duration:30,topic:'',newWords:'',quotes:'',note:''});save();renderEnglish();toast('已标记今日完成（30分钟）');
+}
+function renderEnglish(){
+  const [y,m]=todayStr().split('-');const month=DB.english.filter(r=>r.date.startsWith(y+'-'+m+'-'));
+  const days=new Set(month.map(r=>r.date)).size;const min=month.reduce((s,r)=>s+(Number(r.duration)||0),0);
+  $('#englishStats').innerHTML='<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div class="mini-stat"><b>'+days+'</b><span>本月打卡天数</span></div>'
+    +'<div class="mini-stat"><b>'+min+'</b><span>本月累计分钟</span></div></div>';
+  const list=$('#englishList');
+  if(!DB.english.length){list.innerHTML='<div class="empty">还没有打卡记录，点「一键标记今日完成」。</div>';return;}
+  list.innerHTML=[...DB.english].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>{
+    return '<div class="news-item"><div class="nt">'+esc(r.date)
+      +'<span class="badge b-toast">'+esc(r.duration)+' 分钟</span>'
+      +(r.topic?'<span class="badge b-home">'+esc(r.topic)+'</span>':'')+'</div>'
+      +(r.newWords?'<div class="ns"><b>生词：</b>'+esc(r.newWords)+'</div>':'')
+      +(r.quotes?'<div class="ns"><b>金句：</b>'+esc(r.quotes)+'</div>':'')
+      +(r.note?'<div class="ns"><b>笔记：</b>'+esc(r.note)+'</div>':'')
+      +'<div class="na"><button class="btn-sm" onclick="editEntity(\'english\',\''+r.id+'\')">编辑</button>'
+      +'<button class="btn-sm danger" onclick="delEntity(\'english\',\''+r.id+'\')">删除</button></div></div>';
+  }).join('');
+}
+
+/* ============ 模块6 每日播客 ============ */
+function getPodcastOf(date){
+  if(!DB.podcasts.daily[date]){DB.podcasts.daily[date]={idx:dayIndex(date)%podcastPool.length};save();}
+  return podcastPool[DB.podcasts.daily[date].idx];
+}
+function renderPodcast(){
+  const date=todayStr();const p=getPodcastOf(date);
+  const rec=DB.podcasts.history.find(r=>r.date===date);
+  $('#podcastCard').innerHTML='<div class="badge '+(p.theme==='金融'?'b-toast':p.theme==='个人成长'?'b-dessert':'b-home')+'">'+esc(p.theme)+'</div>'
+    +'<div style="margin:8px 0"><b style="font-size:16px">'+esc(p.name)+'</b></div>'
+    +'<div style="color:var(--muted);font-size:13px">单集：'+esc(p.episode)+' · '+esc(p.duration)+'</div>'
+    +'<div class="pill-row" style="margin-top:12px">'
+    +'<button class="btn-primary" onclick="podMark(\'listened\')">'+(rec&&rec.status==='已听'?'✓ 已听':'标记已听')+'</button>'
+    +'<button class="btn-ghost" onclick="podMark(\'collect\')">'+(rec&&rec.collected?'★ 已收藏':'收藏')+'</button></div>'
+    +'<label style="font-size:12.5px;color:var(--muted)">收听感想</label>'
+    +'<textarea id="pthought" rows="2" placeholder="写下你的想法…" style="width:100%;margin-top:5px;padding:9px;border:1px solid var(--line);border-radius:9px;font-family:inherit">'+esc(rec?rec.thought:'')+'</textarea>'
+    +'<div style="margin-top:9px"><button class="btn-primary" onclick="savePod()">保存感想</button></div>';
+  const list=$('#podcastList');
+  if(!DB.podcasts.history.length){list.innerHTML='<div class="empty">还没有收听记录。</div>';return;}
+  list.innerHTML=[...DB.podcasts.history].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>{
+    return '<div class="news-item"><div class="nt">'+esc(r.date)
+      +(r.status==='已听'?'<span class="badge b-home">已听</span>':'<span class="badge st-want">未听</span>')
+      +(r.collected?'<span class="badge b-dessert">★ 收藏</span>':'')+'</div>'
+      +'<div class="ns"><b>'+esc(r.name)+'</b> · '+esc(r.episode)+' · '+esc(r.duration)+'</div>'
+      +(r.thought?'<div class="ns">'+esc(r.thought)+'</div>':'')
+      +'<div class="na"><button class="btn-sm danger" onclick="podDel(\''+r.date+'\')">删除</button></div></div>';
+  }).join('');
+}
+function podMark(kind){
+  const date=todayStr();const p=getPodcastOf(date);
+  let rec=DB.podcasts.history.find(r=>r.date===date);
+  if(!rec){rec={date,name:p.name,episode:p.episode,duration:p.duration,status:'未听',thought:'',collected:false};DB.podcasts.history.push(rec);}
+  if(kind==='listened')rec.status=rec.status==='已听'?'未听':'已听';
+  if(kind==='collect')rec.collected=!rec.collected;
+  save();renderPodcast();toast(kind==='listened'?'已更新收听状态':'已更新收藏');
+}
+function savePod(){const date=todayStr();const p=getPodcastOf(date);let rec=DB.podcasts.history.find(r=>r.date===date);
+  if(!rec){rec={date,name:p.name,episode:p.episode,duration:p.duration,status:'未听',thought:'',collected:false};DB.podcasts.history.push(rec);}
+  rec.thought=$('#pthought').value;save();toast('感想已保存');renderPodcast();}
+function podDel(date){if(confirm('删除这条收听记录？')){DB.podcasts.history=DB.podcasts.history.filter(r=>r.date!==date);save();renderPodcast();toast('已删除');}}
+
+/* ============ 数据菜单 ============ */
+function openDataMenu(){
+  const html='<div style="font-size:13px;color:var(--muted);margin-bottom:12px">所有数据保存在本机浏览器（localStorage）。导出后可在其他设备导入继续用。</div>'
+    +'<div style="display:flex;flex-direction:column;gap:10px">'
+    +'<button class="btn-primary" onclick="exportData()">⬇ 导出备份(JSON)</button>'
+    +'<button class="btn-ghost" onclick="importData()">⬆ 导入备份</button>'
+    +'<button class="btn-ghost" onclick="clearData()">🗑 清空全部数据</button></div>'
+    +'<input type="file" id="impFile" accept="application/json" style="display:none" onchange="doImport(this)">';
+  openModal('数据管理',html);
+}
+function exportData(){const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='生活工作台备份-'+todayStr()+'.json';a.click();toast('已导出');}
+function importData(){$('#impFile').click();}
+function doImport(input){const f=input.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{const d=JSON.parse(rd.result);if(d&&d.recipeLib){DB=d;save();closeModal();renderActive();toast('导入成功');}}catch(e){toast('文件格式错误');}};rd.readAsText(f);}
+function clearData(){if(confirm('确定清空全部数据？此操作不可恢复。')){DB=freshDB();save();closeModal();recipeView='lib';drawView='lib';renderActive();toast('已清空');}}
+
+/* ============ 顶部 / Tab / 渲染 ============ */
+function updateHero(){
+  const d=new Date();const h=d.getHours();
+  const g=h<6?'凌晨好':h<12?'早上好':h<14?'中午好':h<18?'下午好':'晚上好';
+  $('#greet').textContent=g+'，今天也要好好生活 🌿';
+  const wk=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][d.getDay()];
+  $('#heroDate').textContent=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+wk;
+}
+const MODULES=[
+  {id:'recipes',name:'🍞 烘焙食谱',render:renderRecipes},
+  {id:'drawings',name:'🎨 绘画素材',render:renderDrawings},
+  {id:'reading',name:'📖 每日阅读',render:renderReading},
+  {id:'news',name:'📰 每日新闻',render:renderNews},
+  {id:'english',name:'🔤 英语打卡',render:renderEnglish},
+  {id:'podcast',name:'🎧 播客推荐',render:renderPodcast}
+];
+let active='recipes';
+function buildTabs(){
+  $('#tabs').innerHTML=MODULES.map(m=>'<button data-id="'+m.id+'" class="'+(m.id===active?'active':'')+'">'+m.name+'</button>').join('');
+  $$('#tabs button').forEach(b=>b.onclick=()=>{active=b.dataset.id;
+    $$('#tabs button').forEach(x=>x.classList.toggle('active',x===b));
+    $$('.panel').forEach(p=>p.classList.remove('active'));
+    $('#p-'+active).classList.add('active');renderActive();window.scrollTo({top:0,behavior:'smooth'});});
+}
+function renderActive(){const m=MODULES.find(x=>x.id===active);if(m)m.render();}
+function tg(id){const e=document.getElementById(id);if(e)e.classList.toggle('hidden');}
+
+/* 子标签绑定 */
+$('#recipeSub').addEventListener('click',e=>{if(e.target.dataset.v){recipeView=e.target.dataset.v;renderRecipes();}});
+$('#drawSub').addEventListener('click',e=>{if(e.target.dataset.v){drawView=e.target.dataset.v;renderDrawings();}});
+
+/* 初始化 */
+load();updateHero();buildTabs();
+$$('.panel').forEach(p=>p.classList.remove('active'));
+$('#p-'+active).classList.add('active');
+renderActive();
+</script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}
+</script>
+</body>
+</html>
