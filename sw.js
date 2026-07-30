@@ -18,8 +18,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
-  // 新闻数据始终走网络，保证每次打开都能看到 GitHub Actions 每 6 小时刷新的最新内容
-  if (url.pathname.endsWith('/news.json') || url.pathname.startsWith('/api/')) {
+  // 新闻 / 食谱 / 绘画 数据始终走网络，保证每次打开都能看到 Actions 自动刷新的最新内容
+  if (url.pathname.endsWith('/news.json') || url.pathname.endsWith('/recipes.json') || url.pathname.endsWith('/drawings.json') || url.pathname.startsWith('/api/')) {
     e.respondWith(fetch(e.request).catch(() => caches.match('./index.html')));
     return;
   }

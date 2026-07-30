@@ -156,6 +156,9 @@
   .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
 
   .empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 10px}
+  .more{text-align:center;color:var(--muted);font-size:12.5px;padding:14px 10px}
+  .rcard .thumb{width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:6px;background:#f1ede6}
+  .rcard .thumb img{width:100%;height:100%;object-fit:cover;border-radius:10px}
   .tip{font-size:12px;color:var(--muted);background:#f3f8f7;border:1px dashed var(--line);
     border-radius:10px;padding:9px 12px;margin-bottom:12px}
   .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#2b3440;color:#fff;
@@ -187,7 +190,7 @@
       <button data-v="lib" class="active">📚 素材库</button>
       <button data-v="mine">🍽 我的美食集</button>
     </div>
-    <div class="tip">「素材库」为从公开食谱站（Wikimedia Cookbook）爬取的真实配方；点「＋加入我的美食集」挑选喜欢的，之后可二次编辑、形成专属美食集。</div>
+    <div class="tip">「素材库」为每天自动从公开食谱库（TheMealDB）抓取的<b>真实配方</b>（含图、用料、步骤），向下滑动可无限加载更多；点「＋加入我的美食集」收藏喜欢的，之后可二次编辑成专属美食集。</div>
     <div class="filters" id="recipeFilters"></div>
     <div class="grid recipes" id="recipeBody"></div>
   </section>
@@ -199,7 +202,7 @@
       <button data-v="lib" class="active">📚 素材库</button>
       <button data-v="mine">🖼 我的绘画集</button>
     </div>
-    <div class="tip">「素材库」为从维基共享资源（Wikimedia Commons，公共领域/自由授权）爬取的参考图；点「＋加入我的绘画集」收藏喜欢的，用于后续临摹与创作。</div>
+    <div class="tip">「素材库」为每天自动从维基共享资源（Wikimedia Commons，公共领域/自由授权）抓取的<b>绘画参考图</b>，向下滑动可无限加载更多；点「＋加入我的绘画集」收藏喜欢的，用于后续临摹与创作。</div>
     <div class="filters" id="drawFilters"></div>
     <div class="grid gallery" id="drawBody"></div>
   </section>
@@ -705,7 +708,7 @@ function addEntity(m){openEntityForm(m,null);}
 function editEntity(m,id){const it=mineArr(m).find(x=>x.id===id);if(it)openEntityForm(m,it);}
 function delEntity(m,id){if(confirm('确定删除这条记录？')){const arr=mineArr(m);const i=arr.findIndex(x=>x.id===id);if(i>=0)arr.splice(i,1);save();renderActive();toast('已删除');}}
 function addToMine(mod,libId){
-  const lib=mod==='recipes'?DB.recipeLib:DB.drawLib;
+  const lib=mod==='recipes'?(recipeLibData||DB.recipeLib):(drawLibData||DB.drawLib);
   const mine=mineArr(mod);const src=lib.find(x=>x.id===libId);if(!src)return;
   if(mine.some(m=>m.libId===libId)){toast('已在我的收藏中');return;}
   const copy={id:uid(),libId:libId};
@@ -717,6 +720,35 @@ function addToMine(mod,libId){
 
 /* ============ 模块1 烘焙食谱 ============ */
 let recipeView='lib';
+let recipeLibData=null, recipeFiltered=[], recipePage=0, recipeBusy=false;
+const RPAGE=12;
+const recipeObserver=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){recipeObserver.unobserve(e.target);renderRecipeLibBody();}});});
+async function loadRecipes(){
+  if(recipeLibData) return recipeLibData;
+  try{ const r=await fetch('recipes.json',{cache:'no-store'}); if(r.ok){ recipeLibData=await r.json(); return recipeLibData; } }catch(e){}
+  recipeLibData=seedRecipeLib(); return recipeLibData;
+}
+function recipeCardHTML(r){
+  const inMine=DB.recipeMine.some(m=>m.libId===r.id);
+  const catCls={'面包':'b-bread','吐司':'b-toast','家常菜':'b-home','甜点':'b-dessert'}[r.category]||'';
+  return '<div class="rcard"><div class="top"><b>'+esc(r.name)+'</b><span class="badge '+catCls+'">'+esc(r.category)+'</span></div>'
+    +(r.thumb?'<div class="thumb"><img src="'+esc(r.thumb)+'" alt="" loading="lazy" onerror="this.parentNode.textContent=\'无图\'"></div>':'')
+    +'<div class="stars"><span class="lab">难度</span>'+stars(r.difficulty)+'</div>'
+    +'<div class="acts"><button class="btn-sm" onclick="tg(\'rlib-'+r.id+'\')">详情</button>'
+    +(inMine?'<button class="btn-sm ok">✓ 已收藏</button>':'<button class="btn-sm ok" onclick="addToMine(\'recipes\',\''+r.id+'\')">＋ 加入我的美食集</button>')
+    +'</div><div class="detail hidden" id="rlib-'+r.id+'">'
+    +(r.ingredients?'<b>用料：</b>\n'+esc(r.ingredients)+'\n\n':'')
+    +(r.steps?'<b>步骤：</b>\n'+esc(r.steps)+'\n\n':'')
+    +(r.note?'<b>备注：</b>'+esc(r.note)+'\n':'')
+    +(r.source?'<a href="'+esc(r.source)+'" target="_blank" rel="noopener">来源链接 ↗</a>':'')+'</div></div>';
+}
+function recipeApplyFilter(){
+  const cat=$('#rl-cat').value,diff=$('#rl-diff').value,sort=$('#rl-sort').value;
+  let list=recipeLibData.filter(r=>(!cat||r.category===cat)&&(!diff||String(r.difficulty)===diff));
+  if(sort==='rateDesc')list=[...list].sort((a,b)=>(Number(b.rating)||0)-(Number(a.rating)||0));
+  recipeFiltered=list; recipePage=0;
+}
+function recipeReset(){ recipeObserver.disconnect(); recipeApplyFilter(); $('#recipeBody').innerHTML=''; renderRecipeLibBody(); }
 function renderRecipes(){
   $$('#recipeSub button').forEach(b=>b.classList.toggle('active',b.dataset.v===recipeView));
   const f=$('#recipeFilters'),b=$('#recipeBody');
@@ -724,8 +756,9 @@ function renderRecipes(){
     f.innerHTML='<select id="rl-cat"><option value="">全部分类</option><option>面包</option><option>吐司</option><option>家常菜</option><option>甜点</option></select>'
       +'<select id="rl-diff"><option value="">全部难度</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>'
       +'<select id="rl-sort"><option value="default">默认排序</option><option value="rateDesc">评分高→低</option></select>';
-    ['rl-cat','rl-diff','rl-sort'].forEach(id=>$('#'+id).addEventListener('change',renderRecipeLibBody));
-    renderRecipeLibBody();
+    ['rl-cat','rl-diff','rl-sort'].forEach(id=>$('#'+id).addEventListener('change',recipeReset));
+    if(!recipeLibData){ b.innerHTML='<div class="empty">正在加载食谱库…</div>'; loadRecipes().then(()=>{ if(recipeView==='lib') recipeReset(); }); }
+    else recipeReset();
   }else{
     f.innerHTML='<select id="rm-cat"><option value="">全部分类</option><option>面包</option><option>吐司</option><option>家常菜</option><option>甜点</option></select>'
       +'<button class="btn-primary" onclick="addEntity(\'recipes\')">＋ 新增美食</button>';
@@ -734,24 +767,17 @@ function renderRecipes(){
   }
 }
 function renderRecipeLibBody(){
-  const cat=$('#rl-cat').value,diff=$('#rl-diff').value,sort=$('#rl-sort').value;
-  let list=DB.recipeLib.filter(r=>(!cat||r.category===cat)&&(!diff||String(r.difficulty)===diff));
-  if(sort==='rateDesc')list=[...list].sort((a,b)=>(Number(b.rating)||0)-(Number(a.rating)||0));
+  if(recipeBusy) return; recipeBusy=true;
   const b=$('#recipeBody');
-  if(!list.length){b.innerHTML='<div class="empty">没有匹配的素材</div>';return;}
-  b.innerHTML=list.map(r=>{
-    const inMine=DB.recipeMine.some(m=>m.libId===r.id);
-    const catCls={'面包':'b-bread','吐司':'b-toast','家常菜':'b-home','甜点':'b-dessert'}[r.category]||'';
-    return '<div class="rcard"><div class="top"><b>'+esc(r.name)+'</b><span class="badge '+catCls+'">'+esc(r.category)+'</span></div>'
-      +'<div class="stars"><span class="lab">难度</span>'+stars(r.difficulty)+'</div>'
-      +'<div class="acts"><button class="btn-sm" onclick="tg(\'rlib-'+r.id+'\')">详情</button>'
-      +(inMine?'<button class="btn-sm ok">✓ 已收藏</button>':'<button class="btn-sm ok" onclick="addToMine(\'recipes\',\''+r.id+'\')">＋ 加入我的美食集</button>')
-      +'</div><div class="detail hidden" id="rlib-'+r.id+'">'
-      +(r.ingredients?'<b>用料：</b>\n'+esc(r.ingredients)+'\n\n':'')
-      +(r.steps?'<b>步骤：</b>\n'+esc(r.steps)+'\n\n':'')
-      +(r.note?'<b>备注：</b>'+esc(r.note)+'\n':'')
-      +(r.source?'<a href="'+esc(r.source)+'" target="_blank" rel="noopener">来源链接 ↗</a>':'')+'</div></div>';
-  }).join('');
+  b.querySelectorAll('#recipeMore').forEach(x=>x.remove());
+  const slice=recipeFiltered.slice(recipePage*RPAGE,(recipePage+1)*RPAGE);
+  if(recipePage===0 && !slice.length){ b.innerHTML='<div class="empty">没有匹配的素材</div>'; recipeBusy=false; return; }
+  b.insertAdjacentHTML('beforeend', slice.map(recipeCardHTML).join(''));
+  recipePage++;
+  if(recipePage*RPAGE < recipeFiltered.length){
+    const s=document.createElement('div'); s.id='recipeMore'; s.className='more'; s.textContent='向下滑动加载更多…'; b.appendChild(s); recipeObserver.observe(s);
+  } else { b.insertAdjacentHTML('beforeend','<div class="more">已经到底啦 🎉</div>'); }
+  recipeBusy=false;
 }
 function renderRecipeMineBody(){
   const cat=$('#rm-cat').value;
@@ -775,14 +801,29 @@ function renderRecipeMineBody(){
 
 /* ============ 模块2 绘画素材 ============ */
 let drawView='lib';
+let drawLibData=null, drawFiltered=[], drawPage=0, drawBusy=false;
+const DPAGE=12;
+const drawObserver=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){drawObserver.unobserve(e.target);renderDrawLibBody();}});});
+async function loadDrawings(){
+  if(drawLibData) return drawLibData;
+  try{ const r=await fetch('drawings.json',{cache:'no-store'}); if(r.ok){ drawLibData=await r.json(); return drawLibData; } }catch(e){}
+  drawLibData=seedDrawLib; return drawLibData;
+}
+function drawApplyFilter(){
+  const cat=$('#dl-cat').value,theme=$('#dl-theme').value.trim();
+  drawFiltered=drawLibData.filter(x=>(!cat||x.category===cat)&&(!theme||(x.theme||'').includes(theme)));
+  drawPage=0;
+}
+function drawReset(){ drawObserver.disconnect(); drawApplyFilter(); $('#drawBody').innerHTML=''; renderDrawLibBody(); }
 function renderDrawings(){
   $$('#drawSub button').forEach(b=>b.classList.toggle('active',b.dataset.v===drawView));
   const f=$('#drawFilters'),b=$('#drawBody');
   if(drawView==='lib'){
     f.innerHTML='<select id="dl-cat"><option value="">全部分类</option><option>简笔画</option><option>铅笔素描</option><option>彩铅</option><option>丙烯画</option></select>'
       +'<input id="dl-theme" placeholder="按主题搜索" style="min-width:130px">';
-    ['dl-cat','dl-theme'].forEach(id=>$('#'+id).addEventListener('input',renderDrawLibBody));
-    renderDrawLibBody();
+    ['dl-cat','dl-theme'].forEach(id=>$('#'+id).addEventListener('input',drawReset));
+    if(!drawLibData){ b.innerHTML='<div class="empty">正在加载素材库…</div>'; loadDrawings().then(()=>{ if(drawView==='lib') drawReset(); }); }
+    else drawReset();
   }else{
     f.innerHTML='<select id="dm-cat"><option value="">全部分类</option><option>简笔画</option><option>铅笔素描</option><option>彩铅</option><option>丙烯画</option></select>'
       +'<button class="btn-primary" onclick="addEntity(\'drawings\')">＋ 新增素材</button>';
@@ -790,24 +831,33 @@ function renderDrawings(){
     renderDrawMineBody();
   }
 }
+function drawCardHTML(x){
+  const catCls={'简笔画':'b-simple','铅笔素描':'b-pencil','彩铅':'b-color','丙烯画':'b-acrylic'}[x.category]||'';
+  const inMine=DB.drawMine.some(m=>m.libId===x.id);
+  const thumb=(x.refPath&&/^https?:\/\//.test(x.refPath))
+    ?'<div class="thumb"><img src="'+esc(x.refPath)+'" alt="" loading="lazy" onerror="this.parentNode.textContent=\'无图\'"></div>'
+    :'<div class="thumb">🖼 '+(esc(x.refPath)||'未设参考图')+'</div>';
+  return '<div class="gcard">'+thumb+'<div class="body"><b>'+esc(x.name)+'</b>'
+    +'<div><span class="badge '+catCls+'">'+esc(x.category)+'</span> <span class="badge st-want">'+esc(x.status)+'</span></div>'
+    +'<div class="meta">主题：'+(esc(x.theme)||'—')+' · 难度 '+stars(x.difficulty)+'</div>'
+    +'<div class="meta">授权：'+(esc(x.lic)||'—')+'</div>'
+    +'<div class="acts"><button class="btn-sm" onclick="tg(\'dlib-'+x.id+'\')">详情</button>'
+    +(inMine?'<button class="btn-sm ok">✓ 已收藏</button>':'<button class="btn-sm ok" onclick="addToMine(\'drawings\',\''+x.id+'\')">＋ 加入</button>')
+    +'</div><div class="detail hidden" id="dlib-'+x.id+'">'
+    +(x.tutorial?'<a href="'+esc(x.tutorial)+'" target="_blank" rel="noopener">来源/教程链接 ↗</a>':'')+'</div></div></div>';
+}
 function renderDrawLibBody(){
-  const cat=$('#dl-cat').value,theme=$('#dl-theme').value.trim();
-  let list=DB.drawLib.filter(x=>(!cat||x.category===cat)&&(!theme||(x.theme||'').includes(theme)));
+  if(drawBusy) return; drawBusy=true;
   const b=$('#drawBody');
-  if(!list.length){b.innerHTML='<div class="empty">没有匹配的素材</div>';return;}
-  b.innerHTML=list.map(x=>{
-    const catCls={'简笔画':'b-simple','铅笔素描':'b-pencil','彩铅':'b-color','丙烯画':'b-acrylic'}[x.category]||'';
-    const inMine=DB.drawMine.some(m=>m.libId===x.id);
-    return '<div class="gcard"><div class="thumb"><img src="'+esc(x.refPath)+'" alt="" loading="lazy" onerror="this.parentNode.textContent=\'图片加载失败\'"></div>'
-      +'<div class="body"><b>'+esc(x.name)+'</b>'
-      +'<div><span class="badge '+catCls+'">'+esc(x.category)+'</span> <span class="badge st-want">'+esc(x.status)+'</span></div>'
-      +'<div class="meta">主题：'+(esc(x.theme)||'—')+' · 难度 '+stars(x.difficulty)+'</div>'
-      +'<div class="meta">授权：'+(esc(x.lic)||'—')+'</div>'
-      +'<div class="acts"><button class="btn-sm" onclick="tg(\'dlib-'+x.id+'\')">详情</button>'
-      +(inMine?'<button class="btn-sm ok">✓ 已收藏</button>':'<button class="btn-sm ok" onclick="addToMine(\'drawings\',\''+x.id+'\')">＋ 加入</button>')
-      +'</div><div class="detail hidden" id="dlib-'+x.id+'">'
-      +(x.tutorial?'<a href="'+esc(x.tutorial)+'" target="_blank" rel="noopener">来源/教程链接 ↗</a>':'')+'</div></div></div>';
-  }).join('');
+  b.querySelectorAll('#drawMore').forEach(x=>x.remove());
+  const slice=drawFiltered.slice(drawPage*DPAGE,(drawPage+1)*DPAGE);
+  if(drawPage===0 && !slice.length){ b.innerHTML='<div class="empty">没有匹配的素材</div>'; drawBusy=false; return; }
+  b.insertAdjacentHTML('beforeend', slice.map(drawCardHTML).join(''));
+  drawPage++;
+  if(drawPage*DPAGE < drawFiltered.length){
+    const s=document.createElement('div'); s.id='drawMore'; s.className='more'; s.textContent='向下滑动加载更多…'; b.appendChild(s); drawObserver.observe(s);
+  } else { b.insertAdjacentHTML('beforeend','<div class="more">已经到底啦 🎉</div>'); }
+  drawBusy=false;
 }
 function renderDrawMineBody(){
   const cat=$('#dm-cat').value;

@@ -1,4 +1,4 @@
-name: Refresh News
+name: Refresh Data
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch: {}           # 也可在 Actions 页面手动触发
 
 permissions:
-  contents: write                 # 允许把更新后的 news.json 提交回仓库
+  contents: write                 # 允许把更新后的数据文件提交回仓库
 
 jobs:
   refresh:
@@ -19,10 +19,14 @@ jobs:
       - run: npm ci
       - name: 抓取新闻并抽取全文
         run: node scripts/crawl-news.mjs
+      - name: 抓取真实食谱库
+        run: node scripts/crawl-recipes.mjs
+      - name: 抓取绘画参考图库
+        run: node scripts/crawl-drawings.mjs
       - name: 提交更新
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add news.json
-          git commit -m "chore: 刷新新闻 $(date +'%F %T')" || echo "无变化"
+          git add news.json recipes.json drawings.json
+          git commit -m "chore: 刷新新闻/食谱/绘画数据 $(date +'%F %T')" || echo "无变化"
           git push
