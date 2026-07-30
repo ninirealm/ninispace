@@ -1,4 +1,4 @@
-const CACHE = 'life-wb-v1';
+const CACHE = 'life-wb-v2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -17,6 +17,12 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  // 新闻数据始终走网络，保证每次打开都能看到 GitHub Actions 每 6 小时刷新的最新内容
+  if (url.pathname.endsWith('/news.json') || url.pathname.startsWith('/api/')) {
+    e.respondWith(fetch(e.request).catch(() => caches.match('./index.html')));
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then((r) =>
       r ||
