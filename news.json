@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-03T16:29:20.529Z",
+  "updated": "2026-09-03T21:05:44.619Z",
   "items": [
     {
       "id": "1lkz6pc",
@@ -63,13 +63,13 @@
     },
     {
       "id": "chckm5",
-      "title": "ChatGPT、Grok、Claude、Cursor 集体突发故障",
+      "title": "（更新：已恢复正常）ChatGPT、Grok、Claude、Cursor 集体突发故障",
       "link": "https://www.ithome.com/0/998/195.htm",
       "source": "IT之家",
       "category": "科技·数码",
       "pubDate": "2026-09-03T15:07:21.000Z",
-      "summary": "IT之家 9 月 3 日消息，据IT之家网友投稿反馈，ChatGPT、Grok、Claude、Cursor 等多款 AI 模型今晚突发故障。此外，用户请求 Codex 会出现“404 Not Found”错误。 IT之家查询 Downdetector 报告获悉，美国用户使用 OpenAI、Claude、Grok、Cur",
-      "fullText": "感谢IT之家网友 咩咩洋、缪尔赛思、SpectreAX、澤的纠缠态、墨翊和一一、liyi820、gggxbbb、Domado、南琴梨 的线索投递！ IT之家 9 月 3 日消息，据IT之家网友投稿反馈，ChatGPT、Grok、Claude、Cursor 等多款 AI 模型今晚突发故障。此外，用户请求 Codex 会出现“404 Not Found”错误。IT之家查询 Downdetector 报告获悉，美国用户使用 OpenAI、Claude、Grok、Cursor 服务时均出现问题。目前已有超过 12,000 份用户报告指出 OpenAI 存在问题，关于 Claude 的问题报告约有 1,200 份，关于 Grok 的问题报告约有 1,000 份。各方回应：OpenAI：ChatGPT 和 Codex 目前正出现问题。Anthropic：正在调查 Claude 出现的错误，将致力于修复工作。SpaceXAI：Grok 目前出现故障，正在调查服务中断。"
+      "summary": "【9 月 4 日 1:13 更新】目前文中提到的模型 / AI 工具官网“Status”主页均显示已经恢复正常。 IT之家 9 月 3 日消息，据IT之家网友投稿反馈，ChatGPT、Grok、Claude、Cursor 等多款 AI 模型今晚突发故障。此外，用户请求 Codex 会出现“404 Not Found”错",
+      "fullText": "感谢IT之家网友 咩咩洋、缪尔赛思、SpectreAX、澤的纠缠态、墨翊和一一、liyi820、gggxbbb、Domado、南琴梨 的线索投递！ 【9 月 4 日 1:13 更新】目前文中提到的模型 / AI 工具官网“Status”主页均显示已经恢复正常。IT之家 9 月 3 日消息，据IT之家网友投稿反馈，ChatGPT、Grok、Claude、Cursor 等多款 AI 模型今晚突发故障。此外，用户请求 Codex 会出现“404 Not Found”错误。IT之家查询 Downdetector 报告获悉，美国用户使用 OpenAI、Claude、Grok、Cursor 服务时均出现问题。目前已有超过 12,000 份用户报告指出 OpenAI 存在问题，关于 Claude 的问题报告约有 1,200 份，关于 Grok 的问题报告约有 1,000 份。各方回应：OpenAI：ChatGPT 和 Codex 目前正出现问题。Anthropic：正在调查 Claude 出现的错误，将致力于修复工作。SpaceXAI：Grok 目前出现故障，正在调查服务中断。"
     },
     {
       "id": "dae7oe",
