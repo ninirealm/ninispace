@@ -155,36 +155,36 @@
   },
   {
     "id": "dl15",
-    "name": "\"Rex Mays,\" c. 1962, by Robert Edward Weaver",
+    "name": "Martin van Meytens Maria Theresia 1741 Zeichnung",
     "category": "铅笔素描",
     "theme": "素描造型",
     "difficulty": 1,
+    "refPath": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Martin_van_Meytens_Maria_Theresia_1741_Zeichnung.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "tutorial": "https://commons.wikimedia.org/wiki/File:Martin_van_Meytens_Maria_Theresia_1741_Zeichnung.jpg",
+    "status": "想画",
+    "lic": "Public domain"
+  },
+  {
+    "id": "dl16",
+    "name": "\"Rex Mays,\" c. 1962, by Robert Edward Weaver",
+    "category": "铅笔素描",
+    "theme": "素描造型",
+    "difficulty": 2,
     "refPath": "https://upload.wikimedia.org/wikipedia/commons/3/3e/%22Rex_Mays%2C%22_c._1962%2C_by_Robert_Edward_Weaver.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
     "tutorial": "https://commons.wikimedia.org/wiki/File:%22Rex_Mays,%22_c._1962,_by_Robert_Edward_Weaver.jpg",
     "status": "想画",
     "lic": "CC BY-SA 3.0"
   },
   {
-    "id": "dl16",
+    "id": "dl17",
     "name": "\"Pipe Dream.\" Pencil Drawing by Irma Hesse",
     "category": "铅笔素描",
     "theme": "素描造型",
-    "difficulty": 2,
+    "difficulty": 3,
     "refPath": "https://upload.wikimedia.org/wikipedia/commons/5/50/%22Pipe_Dream.%22_Pencil_Drawing_by_Irma_Hesse.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
     "tutorial": "https://commons.wikimedia.org/wiki/File:%22Pipe_Dream.%22_Pencil_Drawing_by_Irma_Hesse.jpg",
     "status": "想画",
     "lic": "Public domain"
-  },
-  {
-    "id": "dl17",
-    "name": "( Study for old man ) pencil 2018",
-    "category": "铅笔素描",
-    "theme": "素描造型",
-    "difficulty": 3,
-    "refPath": "https://upload.wikimedia.org/wikipedia/commons/0/08/%28_Study_for_old_man_%29_pencil_2018.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-    "tutorial": "https://commons.wikimedia.org/wiki/File:(_Study_for_old_man_)_pencil_2018.jpg",
-    "status": "想画",
-    "lic": "CC BY-SA 4.0"
   },
   {
     "id": "dl18",
